@@ -48,9 +48,9 @@ class TensorProductPolynomialBasis(PolynomialBasis):
 		"""
 		X = self._scale(X)
 		
-		if self.mode is 'total':		 
+		if self.mode == 'total':		 
 			V_coordinate = [self._vander(X[:,k], self.degree) for k in range(self.dim)]
-		elif self.mode is 'max':
+		elif self.mode == 'max':
 			V_coordinate = [self._vander(X[:,k], d) for k,d in enumerate(self.degree)]
 			
 		
@@ -183,10 +183,10 @@ def vandermonde_arnoldi_CGS(X, degree, weight = None, mode = None):
 			mode = 'max'
 			degree = np.copy(degree)
 
-	if mode is 'total':
+	if mode == 'total':
 		indices = total_degree_index(dim, degree)
 		update_rule = _update_rule_total 
-	elif mode is 'max':
+	elif mode == 'max':
 		indices = max_degree_index(degree)
 		update_rule = _update_rule_max
 	
@@ -233,9 +233,9 @@ def vandermonde_arnoldi_eval(X, R, indices, mode, weight = None):
 	if weight is None:
 		weight = np.ones(M, dtype = X.dtype)	
 	
-	if mode is 'total':
+	if mode == 'total':
 		update_rule = _update_rule_total 
-	elif mode is 'max':
+	elif mode == 'max':
 		update_rule = _update_rule_max
 
 	iter_indices = enumerate(indices)
@@ -252,9 +252,6 @@ def vandermonde_arnoldi_eval(X, R, indices, mode, weight = None):
 
 		# Perform orthogonalizations
 		w -= W[:,:k] @ R[:k,k]
-		# TODO: unroll this loop
-		#for j in range(k):
-		#	w -= R[j,k]*W[:,j]
 		
 		W[:,k] = w/R[k,k]
 
