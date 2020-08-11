@@ -11,7 +11,7 @@ def total_degree_index_slow(dim, degree):
 
 
 @pytest.mark.parametrize("dim", [1,3,5])
-@pytest.mark.parametrize("degree", [0,1,2,5])
+@pytest.mark.parametrize("degree", [0,1,2,5, 10])
 def test_total_degree_index(dim, degree):
 	true_indices = total_degree_index_slow(dim, degree)
 	
