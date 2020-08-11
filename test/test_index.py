@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 from polyrat import total_degree_index, max_degree_index
 
 
@@ -8,8 +9,9 @@ def total_degree_index_slow(dim, degree):
 	return indices[I]
 
 
-
-def test_total_degree_index(dim = 3, degree = 5):
+@pytest.mark.parametrize("dim", [1,3,5])
+@pytest.mark.parametrize("degree", [0,1,2,5])
+def test_total_degree_index(dim, degree):
 	true_indices = total_degree_index_slow(dim, degree)
 	
 	indices = total_degree_index(dim, degree)
@@ -20,4 +22,4 @@ def test_total_degree_index(dim = 3, degree = 5):
 		assert len(res[0]) == 1, "Should only be one match"
 
 if __name__ == '__main__':
-	test_total_degree_index()
+	test_total_degree_index(dim=3, degree=5)
