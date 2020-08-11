@@ -110,7 +110,6 @@ class HermitePolynomialBasis(TensorProductPolynomialBasis):
 
 
 class LaguerrePolynomialBasis(TensorProductPolynomialBasis):
-	# TODO: Change scaling to match orthogonality conditions
 	def _vander(self, *args, **kwargs):
 		return lagvander(*args, **kwargs)
 	def _der(self, *args, **kwargs):
@@ -119,6 +118,9 @@ class LaguerrePolynomialBasis(TensorProductPolynomialBasis):
 		return lagroots(*args, **kwargs)
 
 	def _set_scale(self, X):
+		r""" Laguerre polynomial expects x[i] to be distributed like exp[-lam*x] on [0,infty)
+		so we shift so that all entries are positive and then set a scaling
+		"""
 		self._lb = np.min(X, axis = 0)
 		self._a = 1./np.mean(X - self._lb[None,:], axis = 0)
 		
@@ -243,8 +245,8 @@ def vandermonde_arnoldi_eval(X, R, indices, mode, weight = None):
 	W[:,0] = weight/R[0,0]
 	
 	# Now work on the remaining columns
-	for k, ids in iteridx:
-		i, j = _update_vec(idx[:k], ids)
+	for k, ids in iter_indices:
+		i, j = update_rule(indices[:k], ids)
 		# Form new column
 		w = X[:,i] * W[:,j]
 
@@ -286,5 +288,5 @@ class ArnoldiPolynomialBasis(PolynomialBasis):
 		return self._Q   
 
 	def vandermonde(self, X, weight = None):
-		return vanderonde_arnoldi_eval(X, self._R, self._indices, self.mode, weight = weight)
+		return vandermonde_arnoldi_eval(X, self._R, self._indices, self.mode, weight = weight)
 	
