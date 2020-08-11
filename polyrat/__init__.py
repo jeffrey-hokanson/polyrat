@@ -1,1 +1,1 @@
-from .vandermonde import *
+from .index import *
