@@ -1,4 +1,6 @@
-# PolyRat: A Python Library for Polynomial and Rational Functions
+# PolyRat: Polynomial and Rational Function Library
+
+
 
 
 
