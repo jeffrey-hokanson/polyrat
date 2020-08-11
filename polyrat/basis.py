@@ -217,7 +217,46 @@ def vandermonde_arnoldi_CGS(X, degree, weight = None, mode = None):
 		R[k,k] = np.linalg.norm(q)
 		Q[:,k] = q/R[k,k]
 
-	return Q, R
+	return Q, R, indices
+
+
+
+def vandermonde_arnoldi_eval(X, R, indices, mode, weight = None):
+	r"""
+	"""
+
+	X = np.array(X)
+	M, m = X.shape
+	W = np.zeros((X.shape[0], len(indices)), dtype = X.dtype)
+	if weight is None:
+		weight = np.ones(M, dtype = X.dtype)	
+	
+	if mode is 'total':
+		update_rule = _update_rule_total 
+	elif mode is 'max':
+		update_rule = _update_rule_max
+
+	iter_indices = enumerate(indices)
+
+	# First column
+	next(iter_indices)
+	W[:,0] = weight/R[0,0]
+	
+	# Now work on the remaining columns
+	for k, ids in iteridx:
+		i, j = _update_vec(idx[:k], ids)
+		# Form new column
+		w = X[:,i] * W[:,j]
+
+		# Perform orthogonalizations
+		w -= W[:,:k] @ R[:k,k]
+		# TODO: unroll this loop
+		#for j in range(k):
+		#	w -= R[j,k]*W[:,j]
+		
+		W[:,k] = w/R[k,k]
+
+	return W
 
 class ArnoldiPolynomialBasis(PolynomialBasis):
 	r""" A polynomial basis constructed using Vandermonde with Arnoldi
@@ -231,16 +270,21 @@ class ArnoldiPolynomialBasis(PolynomialBasis):
 		if a list, the list must be length m and a maximum degree polynomial is
 		constructed.
 	"""
-	def __init__(self, X, degree):
+	def __init__(self, X, degree, weight = None):
 		self.X = np.copy(np.atleast_2d(X))
 		self.dim = self.X.shape[1]
 		try:
 			self.degree = int(degree)
+			self.mode = 'total'
 		except (TypeError, ValueError):
 			self.degree = np.copy(degree).astype(np.int)
+			self.mode = 'max'
 	
-		self._Q, self._R = vandermonde_arnoldi_CGS(self.X, self.degree)
+		self._Q, self._R, self._indices = vandermonde_arnoldi_CGS(self.X, self.degree, weight = weight)
 		
 	def basis(self):
 		return self._Q   
 
+	def vandermonde(self, X, weight = None):
+		return vanderonde_arnoldi_eval(X, self._R, self._indices, self.mode, weight = weight)
+	
