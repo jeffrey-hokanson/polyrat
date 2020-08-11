@@ -23,6 +23,7 @@ def test_total_degree_index(dim, degree):
 		assert len(res[0]) == 1, "Should only be one match"
 
 
+@pytest.mark.parameterize("degree", [[0],[5],[1,4],[10,3],[4,5,6,]])
 def test_max_degree_index(degree):
 	indices = max_degree_index(degree)
 
