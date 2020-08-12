@@ -1,5 +1,38 @@
 import numpy as np
 from polyrat import *
+#from polyrat.rat import _minimize_1_norm
+
+#import cvxpy as cp
+
+#def test_minimize_1_norm():
+#	np.random.seed(0)
+#	A = np.random.randn(100,50)
+#	
+#	x, s = _minimize_1_norm(A)
+#
+#
+#	x_ = cp.Variable(A.shape[1])
+#	prob = cp.Problem(cp.Minimize(cp.norm(A @ x_, 1)), [x_[0] == 1.])
+#	prob.solve(verbose = True, solver = 'CVXOPT')
+#
+#	xt = x_.value
+#	xt /= np.linalg.norm(xt)
+#	xt *= np.sign(xt[0])
+#	print(x)
+#	print(xt)
+#	# Check the nominal solution
+
+
+
+def test_skfit():
+	sk = SKRationalApproximation(20,20, refine = True, rebase = True)
+
+	X = np.linspace(-1,1, int(2e3)).reshape(-1,1)
+	X = X
+	y = np.abs(X).flatten()
+	sk.fit(X, y)
+
+	print("sup norm error", np.linalg.norm(sk(X) - y, np.inf))
 
 
 def test_skfit_rebase():
@@ -26,4 +59,6 @@ def test_skfit_rebase():
 
 
 if __name__ == '__main__':
-	test_skfit_rebase()
+	#test_skfit_rebase()
+	#test_minimize_1_norm()
+	test_skfit()
