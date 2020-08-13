@@ -26,6 +26,11 @@ def _minimize_2_norm(A):
 		cond = s[0]*np.sqrt(2)/(s[-2] - s[-1])
 	return VH.T.conj()[:,-1], cond
 
+
+def _minimize_inf_norm(A):
+	pass
+
+
 #def _minimize_1_norm(A):
 #	r"""
 #		Solve the optimization problem 
