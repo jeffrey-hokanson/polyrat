@@ -68,12 +68,8 @@ def test_rational_jacobian_complex_arnoldi():
 @pytest.mark.parametrize("complex_", [True, False])
 @pytest.mark.parametrize("seed", [0])
 def test_rational_jacobian(M, dim, num_degree, denom_degree, complex_, seed):
-	np.random.seed(seed)
-	X = np.random.randn(M, dim)
-	y = np.random.randn(M)
-	if complex_:
-		X = X + 1j*np.random.randn(M, dim)
-		y = y + 1j*np.random.randn(M)
+	
+	X, y = random_data(M, dim, complex_)
 
 	P = LegendrePolynomialBasis(X, num_degree).basis()
 	Q = LegendrePolynomialBasis(X, denom_degree).basis()
@@ -91,6 +87,8 @@ def test_rational_jacobian(M, dim, num_degree, denom_degree, complex_, seed):
 	err = check_jacobian(x0.view(float), res, jac, relative = True)
 	print(f"maximum error {err:8.2e}")
 	assert err < 1e-5, "Error in the Jacobian"
+
+
 
 	
 

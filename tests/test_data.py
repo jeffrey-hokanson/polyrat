@@ -14,3 +14,14 @@ def absolute_value(M, complex_ = True):
 	y = np.abs(X).flatten()
 
 	return X, y
+
+def random_data(M, dim, complex_, seed ):
+	np.random.seed(seed)
+	X = np.random.randn(M, dim)
+	y = np.random.randn(M)
+	if complex_:
+		X = X + 1j*np.random.randn(M, dim)
+		y = y + 1j*np.random.randn(M)
+
+	return X, y
+

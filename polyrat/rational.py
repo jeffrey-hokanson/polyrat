@@ -92,8 +92,11 @@ class SKRationalApproximation(RationalApproximation, RationalRatio):
 		if self.refine:
 			a, b = rational_ratio_optimize(y, self.P, self.Q, self.a, self.b, norm = self.norm)
 
+			self.numerator.coef = a
+			self.denominator.coef = b	
+
 			if self.verbose:
-				res_norm = np.linalg.norm( (P @ a)/(Q @ b) - y, self.norm)
+				res_norm = np.linalg.norm( (self.P @ a)/(self.Q @ b) - y, self.norm)
 				print(f"final residual norm {res_norm:21.15e}")
 				
 

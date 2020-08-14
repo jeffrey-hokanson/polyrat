@@ -4,7 +4,7 @@ In the ratio format, we assume we have bases P and Q for the numerator and denom
 """
 
 import numpy as np
-
+import scipy.optimize
 
 ################################################################################
 # Residual and jacobian  
@@ -79,6 +79,13 @@ def rational_ratio_optimize(y, P, Q, a0, b0, norm = 2):
 	m = P.shape[1]
 	n = Q.shape[1]	
 	x0 = np.hstack([a0, b0])
+
+
+	if not isreal:
+		x0 = x0.astype(np.complex)
+		P = P.astype(np.complex)
+		Q = Q.astype(np.complex)
+		y = y.astype(np.complex)	
 	
 	if isreal and norm == 2:
 		res = lambda x: _rational_residual_real(x, P, Q, y)
