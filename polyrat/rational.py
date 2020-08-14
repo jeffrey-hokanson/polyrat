@@ -4,74 +4,8 @@ import scipy.optimize
 from .basis import *
 from .polynomial import *
 from .skiter import *
-from iterprinter import IterationPrinter
 from .rational_ratio import *
 from copy import deepcopy
-
-
-
-
-def ratfit_scipy(y, P, Q, a0, b0, **kwargs):
-	if all( [np.all(np.isreal(X)) for X in [y, P, Q, a0, b0]]):
-		return ratfit_scipy_real(y, P, Q, a0, b0, **kwargs)
-	else:
-		return ratfit_scipy_complex(y, P, Q, a0, b0, **kwargs)
-
-def ratfit_scipy_real(y, P, Q, a0, b0, **kwargs):
-	x0 = np.hstack([a0, b0])
-	m = P.shape[1]
-	n = Q.shape[1]
-
-	res = lambda x: _rational_residual_real(x, P, Q, y)
-	jac = lambda x: _rational_jacobian_real(x, P, Q)
-	
-	# Although the Jacobian is structurally rank deficent, 
-	# we count on the trust region to effectively add a regularization
-	# making the Jacobian full rank	
-	res = scipy.optimize.least_squares(res, x0, jac, **kwargs)
-#	for key in ['nfev', 'njev', 'message']:
-#		print(key, res[key])
-	
-	a = res.x[:m]
-	b = res.x[-n:]
-	return a, b
-
-
-def ratfit_scipy_complex(y, P, Q, a0, b0, **kwargs):
-	a0 = np.copy(a0).astype(np.complex)
-	b0 = np.copy(b0).astype(np.complex)
-	x0 = np.hstack([a0.view(float), b0.view(float)])
-	m = P.shape[1]
-	n = Q.shape[1]
-
-	def res(x):
-		a = x[:2*m].view(complex)
-		b = x[-2*n:].view(complex)
-		res = (P @ a)/(Q @ b) - y
-		return res.view(float)
-
-	def jac(x): 
-		a = x[:2*m].view(complex)
-		b = x[-2*n:].view(complex)
-		Pa = P @ a
-		Qb = Q @ b
-		J = np.hstack([			
-				np.multiply((1./Qb)[:,None], P),				
-				np.multiply(-(Pa/Qb**2)[:,None], Q),
-			])
-		JRI = np.zeros((J.shape[0]*2, J.shape[1]*2), dtype = np.float)
-		JRI[0::2,0::2] = J.real
-		JRI[1::2,1::2] = J.real
-		JRI[0::2,1::2] = -J.imag
-		JRI[1::2,0::2] = J.imag
-		return JRI
-		
-
-	res = scipy.optimize.least_squares(res, x0, jac, **kwargs)
-	a = res.x[:2*m].view(complex)
-	b = res.x[-2*n:].view(complex)	
-
-	return a,b
 
 
 class RationalFunction:
@@ -155,16 +89,8 @@ class SKRationalApproximation(RationalApproximation, RationalRatio):
 			self.numerator = Polynomial(num_basis, a)
 			self.denominator = Polynomial(denom_basis, b)
 
-		if self.refine and False:
-			# Use an optimization method to get a better result
-			P = self.numerator.basis.basis()
-			Q = self.denominator.basis.basis()
-			a0 = self.numerator.coef
-			b0 = self.denominator.coef
-
-			a, b = ratfit_scipy(y, P, Q, a0, b0, gtol = 1e-12, ftol = 1e-10) 
-			self.numerator.coef = np.copy(a)
-			self.denominator.coef = np.copy(b)
+		if self.refine:
+			a, b = rational_ratio_optimize(y, self.P, self.Q, self.a, self.b, norm = self.norm)
 
 			if self.verbose:
 				res_norm = np.linalg.norm( (P @ a)/(Q @ b) - y, self.norm)
