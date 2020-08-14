@@ -30,52 +30,52 @@ def _minimize_1_norm(A):
 	raise NotImplementedError
 
 
-def _minimize_1_norm_real(A):
-	r"""
-		Solve the optimization problem 
-		
-		min_x  || A @ x ||_1  s.t.  ||x||_2 = 1
-	"""
-	m, n = A.shape
-
-	U, s, VH = np.linalg.svd(A, full_matrices = False)
-	print(m,n, *U.shape)
-	A_ub = np.vstack([
-			# A x - t <= 0
-			np.hstack([A, -np.eye(m)]),
-			# -A x - t <= 0 
-			np.hstack([-A, -np.eye(m)])
-			])
-	b_ub = np.zeros(2*m)
-
-	# Pin one of the variables so we have a non-zero solution
-	A_eq = np.zeros((1, m +n))
-	A_eq[0,0] = 1
-	b_eq = np.ones((1,))
-
-	# Objective: minimize the sum of the upper bounds
-	c = np.zeros(n + m)
-	c[n:] = 1.
-
-	lb = -np.inf*np.ones(m+n)
-	ub = np.inf*np.ones(m+n)
-	lb[n:] = 0
-	
-	bounds = [[None, None] for i in range(m+n)]
-	for i in range(m): bounds[n+i][0] = 0
-
-	res = scipy.optimize.linprog(c, A_ub = A_ub, b_ub = b_ub, A_eq = A_eq, b_eq = b_eq, bounds = bounds,
-			options = {'presolve': True, 'autoscale': True, 'lstsq': True})
-	
-	#y = res.x[:n]
-	# U @ y = A @ x 
-	# U @ y = U @ np.diag(s) @ VH @ x
-	# y = np.diag(s) @ VH @ x
-	#x = (VH.conj().T @ (y/s ))
-	x = res.x[:n]
-	x /= np.linalg.norm(x)
-	x *= np.sign(x[0])
-	return x, s
+#def _minimize_1_norm_real(A):
+#	r"""
+#		Solve the optimization problem 
+#		
+#		min_x  || A @ x ||_1  s.t.  ||x||_2 = 1
+#	"""
+#	m, n = A.shape
+#
+#	U, s, VH = np.linalg.svd(A, full_matrices = False)
+#	print(m,n, *U.shape)
+#	A_ub = np.vstack([
+#			# A x - t <= 0
+#			np.hstack([A, -np.eye(m)]),
+#			# -A x - t <= 0 
+#			np.hstack([-A, -np.eye(m)])
+#			])
+#	b_ub = np.zeros(2*m)
+#
+#	# Pin one of the variables so we have a non-zero solution
+#	A_eq = np.zeros((1, m +n))
+#	A_eq[0,0] = 1
+#	b_eq = np.ones((1,))
+#
+#	# Objective: minimize the sum of the upper bounds
+#	c = np.zeros(n + m)
+#	c[n:] = 1.
+#
+#	lb = -np.inf*np.ones(m+n)
+#	ub = np.inf*np.ones(m+n)
+#	lb[n:] = 0
+#	
+#	bounds = [[None, None] for i in range(m+n)]
+#	for i in range(m): bounds[n+i][0] = 0
+#
+#	res = scipy.optimize.linprog(c, A_ub = A_ub, b_ub = b_ub, A_eq = A_eq, b_eq = b_eq, bounds = bounds,
+#			options = {'presolve': True, 'autoscale': True, 'lstsq': True})
+#	
+#	#y = res.x[:n]
+#	# U @ y = A @ x 
+#	# U @ y = U @ np.diag(s) @ VH @ x
+#	# y = np.diag(s) @ VH @ x
+#	#x = (VH.conj().T @ (y/s ))
+#	x = res.x[:n]
+#	x /= np.linalg.norm(x)
+#	x *= np.sign(x[0])
+#	return x, s
 	
 
 
