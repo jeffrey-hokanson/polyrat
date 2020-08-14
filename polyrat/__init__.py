@@ -1,3 +1,4 @@
 from .index import *
 from .basis import *
-from .rat import *
+from .rational import *
+from .polynomial import *

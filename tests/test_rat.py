@@ -1,5 +1,6 @@
 import numpy as np
 from polyrat import *
+from polyrat.rat import _rational_residual_real, _rational_jacobian_real
 #from polyrat.rat import _minimize_1_norm
 
 #import cvxpy as cp
@@ -23,12 +24,16 @@ from polyrat import *
 #	# Check the nominal solution
 
 
+		
+
+	
+
 
 def test_skfit():
-	sk = SKRationalApproximation(20,20, refine = True, rebase = True)
+	sk = SKRationalApproximation(20,20, refine = True, rebase = True, norm = np.inf)
 
 	X = np.linspace(-1,1, int(2e3)).reshape(-1,1)
-	X = X
+#	X = 1j*X
 	y = np.abs(X).flatten()
 	sk.fit(X, y)
 
@@ -61,4 +66,5 @@ def test_skfit_rebase():
 if __name__ == '__main__':
 	#test_skfit_rebase()
 	#test_minimize_1_norm()
-	test_skfit()
+	#test_skfit()
+	test_rational_jacobian_real()
