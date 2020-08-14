@@ -1,6 +1,6 @@
 import numpy as np
 from polyrat import *
-from test_data import *
+from .test_data import *
 import pytest
 
 

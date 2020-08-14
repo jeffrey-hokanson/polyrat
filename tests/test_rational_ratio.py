@@ -3,8 +3,8 @@ from polyrat import *
 from polyrat.rational_ratio import _rational_residual_real, _rational_jacobian_real
 from polyrat.rational_ratio import _rational_residual_complex, _rational_jacobian_complex
 
-from checkjac import *
-from test_data import *
+from .checkjac import *
+from .test_data import *
 import pytest
 
 
@@ -69,7 +69,7 @@ def test_rational_jacobian_complex_arnoldi():
 @pytest.mark.parametrize("seed", [0])
 def test_rational_jacobian(M, dim, num_degree, denom_degree, complex_, seed):
 	
-	X, y = random_data(M, dim, complex_)
+	X, y = random_data(M, dim, complex_, seed)
 
 	P = LegendrePolynomialBasis(X, num_degree).basis()
 	Q = LegendrePolynomialBasis(X, denom_degree).basis()
