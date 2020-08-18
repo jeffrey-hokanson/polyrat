@@ -116,11 +116,12 @@ def test_rational_ratio_inf_complex():
 	dim = 1
 	complex_ = True
 	seed = 0
-	num_degree = 20
-	denom_degree = 20
+	num_degree = 5
+	denom_degree = 5
 	
 	M = 1000
-	X, y = random_data(M, dim, complex_, seed)
+	#X, y = random_data(M, dim, complex_, seed)
+	X, y = absolute_value(M, complex_)
 
 	sk = SKRationalApproximation(num_degree, denom_degree, refine = False, maxiter = 5, rebase= True)
 	sk.fit(X, y)
@@ -139,7 +140,7 @@ def test_rational_ratio_inf_complex():
 	print(f"old error {err_old:8.2e}")
 	print(f"new error {err:8.2e}")
 	assert err < err_old, "Optimization should have improved the solution"
-	#assert False	
+	assert False	
 
 
 if __name__ == '__main__':

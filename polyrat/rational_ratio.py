@@ -6,6 +6,7 @@ In the ratio format, we assume we have bases P and Q for the numerator and denom
 import numpy as np
 import scipy.optimize
 from scipy.optimize import LinearConstraint, NonlinearConstraint, Bounds
+from .slp import sl1lp, slp
 
 ################################################################################
 # Residual and jacobian  
@@ -117,17 +118,18 @@ def _rational_ratio_inf_complex(y, P, Q, a0, b0):
 	lb_var = -np.inf*np.ones(xt0.shape)
 	lb_var[-1] = 0
 	ub_var = np.inf*np.ones(xt0.shape)
-	print("t0", t0)
+	#print("t0", t0)
 
 	# TODO: Replace with a call to SLP
-	res = scipy.optimize.minimize(fun, xt0, jac = grad, constraints = constraint, method = 'cobyla',
-		bounds = Bounds(lb_var, ub_var), options = {'iprint': 10, 'disp':True})
+	res = scipy.optimize.minimize(fun, xt0, jac = grad, constraints = constraint, method = slp,
+		bounds = Bounds(lb_var, ub_var), options = dict(maxiter = 50))
 	xt = res.x
 	x = xt[:-1]
 	a = x[:2*P.shape[1]].view(complex)
 	b = x[-2*Q.shape[1]:].view(complex)
-	print("t", xt[-1])
-	print("con", np.max(con(xt)))
+	#print("t", xt[-1])
+	#print("con", np.max(con(xt)))
+	
 	return a, b
 
 def rational_ratio_optimize(y, P, Q, a0, b0, norm = 2):
