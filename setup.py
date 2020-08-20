@@ -6,6 +6,7 @@ install_requires = [
 	'numpy',
 	'scipy',
 	'iterprinter',
+	'cvxopt',
 	] 
 
 # CVXPY is licensed under the GPL
