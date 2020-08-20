@@ -6,4 +6,7 @@
 
 
 
+## Related Projects
+
+* [baryrat](https://github.com/c-f-h/baryrat): Pure python implementation of the AAA algorithm
 
