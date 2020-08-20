@@ -39,6 +39,18 @@ class RationalRatio(RationalFunction):
 	def b(self):
 		return self.denominator.coef
 
+	def refine(self, X, y, **kwargs):
+		a, b = rational_ratio_optimize(y, self.P, self.Q, self.a, self.b, norm = self.norm, **kwargs)
+
+		self.numerator.coef = a
+		self.denominator.coef = b	
+
+		if self.verbose:
+			res_norm = np.linalg.norm( (self.P @ a)/(self.Q @ b) - y, self.norm)
+			print(f"final residual norm {res_norm:21.15e}")
+
+
+
 class SKRationalApproximation(RationalApproximation, RationalRatio):
 	r"""
 
@@ -51,7 +63,7 @@ class SKRationalApproximation(RationalApproximation, RationalRatio):
 		Basis = None, rebase = True, maxiter = 20, verbose = True):
 
 		RationalApproximation.__init__(self, num_degree, denom_degree)
-		self.refine = refine
+		self._refine = refine
 		self.norm = norm
 		#if self.norm != 2:
 		#	raise NotImplementedError
@@ -74,9 +86,10 @@ class SKRationalApproximation(RationalApproximation, RationalRatio):
 		assert X.shape[0] == y.shape[0], "X and y do not have the same number of rows"
 
 		if self.rebase:
-			self.numerator, self.denominator = skfit_rebase(
+			self.numerator, self.denominator, self.hist = skfit_rebase(
 				X, y, self.num_degree, self.denom_degree,
-				maxiter = self.maxiter, verbose = self.verbose, norm = self.norm
+				maxiter = self.maxiter, verbose = self.verbose, norm = self.norm,
+				history = True,
 				)
 		else:
 			num_basis = self.Basis(X, self.num_degree)	
@@ -84,20 +97,15 @@ class SKRationalApproximation(RationalApproximation, RationalRatio):
 			P = num_basis.basis()
 			Q = denom_basis.basis()
 		
-			a, b = skfit(y, P, Q, maxiter = self.maxiter, verbose = self.verbose, norm = self.norm)
+			a, b, self.hist = skfit(y, P, Q, maxiter = self.maxiter, verbose = self.verbose, norm = self.norm, history = True)
 
 			self.numerator = Polynomial(num_basis, a)
 			self.denominator = Polynomial(denom_basis, b)
+		
+		if self._refine:
+			self.refine(X, y)
 
-		if self.refine:
-			a, b = rational_ratio_optimize(y, self.P, self.Q, self.a, self.b, norm = self.norm)
 
-			self.numerator.coef = a
-			self.denominator.coef = b	
-
-			if self.verbose:
-				res_norm = np.linalg.norm( (self.P @ a)/(self.Q @ b) - y, self.norm)
-				print(f"final residual norm {res_norm:21.15e}")
 				
 
 	def __call__(self, X):

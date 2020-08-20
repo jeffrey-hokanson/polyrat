@@ -132,7 +132,7 @@ def _rational_ratio_inf_complex(y, P, Q, a0, b0):
 	
 	return a, b
 
-def rational_ratio_optimize(y, P, Q, a0, b0, norm = 2):
+def rational_ratio_optimize(y, P, Q, a0, b0, norm = 2, **kwargs):
 	r""" Find a locally optimal rational approximation in ratio form
 
 
@@ -163,7 +163,8 @@ def rational_ratio_optimize(y, P, Q, a0, b0, norm = 2):
 	if isreal and norm == 2:
 		res = lambda x: _rational_residual_real(x, P, Q, y)
 		jac = lambda x: _rational_jacobian_real(x, P, Q) 
-		res = scipy.optimize.least_squares(res, x0, jac)
+		
+		res = scipy.optimize.least_squares(res, x0, jac, **kwargs)
 		a = res.x[:m]
 		b = res.x[-n:]
 		return a, b	
@@ -171,7 +172,8 @@ def rational_ratio_optimize(y, P, Q, a0, b0, norm = 2):
 	elif (not isreal) and norm == 2:
 		res = lambda x: _rational_residual_complex(x, P, Q, y)
 		jac = lambda x: _rational_jacobian_complex(x, P, Q) 
-		res = scipy.optimize.least_squares(res, x0.view(float), jac)
+		
+		res = scipy.optimize.least_squares(res, x0.view(float), jac, **kwargs)
 		a = res.x[:2*m].view(complex)
 		b = res.x[-2*n:].view(complex)	
 		return a,b

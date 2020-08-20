@@ -140,7 +140,6 @@ def test_rational_ratio_inf_complex():
 	print(f"old error {err_old:8.2e}")
 	print(f"new error {err:8.2e}")
 	assert err < err_old, "Optimization should have improved the solution"
-	assert False	
 
 
 if __name__ == '__main__':

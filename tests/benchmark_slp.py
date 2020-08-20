@@ -5,7 +5,7 @@ from polyrat.rational_ratio import _rational_residual_complex, _rational_jacobia
 from polyrat.rational_ratio import _rational_residual_squared_abs_complex, _rational_jacobian_squared_abs_complex
 from polyrat.rational_ratio import _rational_ratio_inf_complex
 
-def test_rational_ratio_inf_complex():
+def benchmark_rational_ratio_inf_complex():
 	M = 10000
 	dim = 1
 	complex_ = True
@@ -40,5 +40,5 @@ def test_rational_ratio_inf_complex():
 	assert err < err_old, "Optimization should have improved the solution"
 
 if __name__ == '__main__':
-	test_rational_ratio_inf_complex()
+	benchmark_rational_ratio_inf_complex()
 	
