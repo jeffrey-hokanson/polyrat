@@ -128,12 +128,12 @@ def skfit(y, P, Q, maxiter = 20, verbose = True, history = False, denom0 = None,
 
 		if res_norm < best_res_norm:
 			best_res_norm = res_norm
-			best_sol = (a, b)
+			best_sol = [a, b]
 
 		delta_fit = np.linalg.norm(fit - fit_old, norm)		
 		
 		if history:
-			hist.append({'fit': fit, 's': s})
+			hist.append({'fit': fit, 'cond': cond})
 
 		if verbose:
 			printer.print_iter(it = it, delta_fit = delta_fit, res_norm = res_norm, cond = cond) 
@@ -146,7 +146,7 @@ def skfit(y, P, Q, maxiter = 20, verbose = True, history = False, denom0 = None,
 		fit_old = fit
 
 	if history:	
-		return best_sol, hist
+		return best_sol + [hist]
 	else:
 		return best_sol
 
@@ -229,7 +229,7 @@ def skfit_rebase(X, y, num_degree, denom_degree, maxiter = 20, verbose = True,
 		if res_norm < best_res_norm:
 			numerator = Polynomial(num_basis, a)
 			denominator = Polynomial(denom_basis, b)
-			best_sol = (numerator, denominator)
+			best_sol = [numerator, denominator]
 			best_res_norm = res_norm
 
 		if history:
@@ -246,6 +246,6 @@ def skfit_rebase(X, y, num_degree, denom_degree, maxiter = 20, verbose = True,
 		fit_old = fit
 
 	if history:	
-		return best_sol, hist
+		return best_sol + [hist]
 	else:
 		return best_sol
