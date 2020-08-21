@@ -78,6 +78,24 @@ def _minimize_1_norm(A):
 #	return x, s
 	
 
+def linearized_ratfit(X, y, num_degree, denom_degree):
+	r""" This solves the linearized rational approximation problem
+
+	See: AKL+19x
+	"""
+	num_basis = ArnoldiPolynomialBasis(X, num_degree)
+	denom_basis = ArnoldiPolynomialBasis(X, denom_degree)
+			
+
+	A = np.hstack([P, np.multiply(-y[:,None], Q) ])
+	x, cond = linearized_solution(A)
+	a = x[:P.shape[1]]
+	b = x[-Q.shape[1]:]
+			
+	numerator = Polynomial(num_basis, a)
+	denominator = Polynomial(denom_basis, b)
+
+	return numerator, denominator
 
 def skfit(y, P, Q, maxiter = 20, verbose = True, history = False, denom0 = None, norm = 2, xtol = 1e-7):
 	r"""
