@@ -30,4 +30,4 @@ class LagrangePolynomialInterpolant(Polynomial):
 		self.coef = np.copy(y)
 
 	def roots(self, **kwargs):
-		return self.basis.roots(coef, **kwargs)	
+		return self.basis.roots(self.coef, **kwargs)	
