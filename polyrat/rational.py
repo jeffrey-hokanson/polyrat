@@ -57,7 +57,7 @@ class RationalRatio(RationalFunction):
 
 
 class LinearizedRationalApproximation(RationalApproximation, RationalRatio):
-	def __init__(self, num_degree, denom__degree):
+	def __init__(self, num_degree, denom_degree):
 		RationalApproximation.__init__(self, num_degree, denom_degree)
 
 	def fit(self, X, y):
@@ -72,11 +72,12 @@ class SKRationalApproximation(RationalApproximation, RationalRatio):
 	"""
 
 	def __init__(self, num_degree, denom_degree, refine = True, norm = 2, 
-		Basis = None, rebase = True, maxiter = 20, verbose = True):
+		Basis = None, rebase = True, maxiter = 20, verbose = True, xtol = 1e-7):
 
 		RationalApproximation.__init__(self, num_degree, denom_degree)
 		self._refine = refine
 		self.norm = norm
+		self.xtol = float(xtol)
 		#if self.norm != 2:
 		#	raise NotImplementedError
 
@@ -101,7 +102,7 @@ class SKRationalApproximation(RationalApproximation, RationalRatio):
 			self.numerator, self.denominator, self.hist = skfit_rebase(
 				X, y, self.num_degree, self.denom_degree,
 				maxiter = self.maxiter, verbose = self.verbose, norm = self.norm,
-				history = True,
+				history = True, xtol = self.xtol
 				)
 		else:
 			num_basis = self.Basis(X, self.num_degree)	
@@ -109,7 +110,8 @@ class SKRationalApproximation(RationalApproximation, RationalRatio):
 			P = num_basis.basis()
 			Q = denom_basis.basis()
 		
-			a, b, self.hist = skfit(y, P, Q, maxiter = self.maxiter, verbose = self.verbose, norm = self.norm, history = True)
+			a, b, self.hist = skfit(y, P, Q, maxiter = self.maxiter, verbose = self.verbose, norm = self.norm, history = True, 
+				xtol = self.xtol)
 
 			self.numerator = Polynomial(num_basis, a)
 			self.denominator = Polynomial(denom_basis, b)

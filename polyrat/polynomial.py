@@ -1,5 +1,7 @@
 import numpy as np
 from .basis import *
+from .arnoldi import *
+from .lagrange import *
 from copy import deepcopy
 
 
@@ -14,10 +16,18 @@ class Polynomial:
 	def eval(self, X):
 		return self.basis.vandermonde(X) @ self.coef
 
-class PolynomialApproximation:
+class PolynomialApproximation(Polynomial):
 	def __init__(self, degree, basis = None, mode = None):
 		pass
 
 	def fit(self, X, y):
 		pass
-		
+
+
+class LagrangePolynomialInterpolant(Polynomial):
+	def __init__(self, X, y):
+		self.basis = LagrangePolynomialBasis(X)
+		self.coef = np.copy(y)
+
+	def roots(self, **kwargs):
+		return self.basis.roots(coef, **kwargs)	
