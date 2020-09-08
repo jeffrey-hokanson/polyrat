@@ -16,7 +16,7 @@ def eval_aaa_slow(xeval, x, y, I, b):
 				denom += b[j]/(xeval[i] - x[k])
 			r = num/denom
 		reval.append(r)
-	return np.array(reval)
+	return np.hstack(reval)
 
 def test_eval_aaa():
 	
@@ -64,5 +64,5 @@ def test_aaa():
 	# Use matrix valued data	
 
 if __name__ == '__main__':
-#	test_eval_aaa()
-	test_aaa()
+	test_eval_aaa()
+#	test_aaa()
