@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.linalg import eig, eigvals, hessenberg
 from .basis import PolynomialBasis
 
 
@@ -8,6 +9,17 @@ def lagrange_roots(nodes, weights, coef, deflation = True):
 
 	This implements the deflation algorithm from LC14
 
+
+
+	Parameters
+	----------
+	nodes: numpy.array (n,)
+		Nodes :math:`x_j` where the polynomial value is defined.
+	weights: numpy.array (n,)
+		The barycentric weights :math:`prod_{k\ne j} (x_j - x_k)^{-1}`
+	coef: numpy.array (n,)
+		The coeffients :math:`c_j` defining the value of the polynomial at each point;
+		i.e., :math:`p(x_j) = c_j`.
 	"""
 	n = len(nodes)
 	assert (n == len(weights)) and  (n == len(coef)), "Dimensions of nodes, weights, and coef should be the same"
