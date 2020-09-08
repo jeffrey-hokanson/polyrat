@@ -19,7 +19,7 @@ y = np.tan(256*X.flatten())
 data += [['tan256', X, y]]
 
 # Range of parameters
-mns = [(k,k) for k in range(2, 22, 2)]
+mns = [(k,k) for k in range(2, 22, 1)]
 
 for name, X, y in data:
 
