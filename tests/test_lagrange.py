@@ -1,5 +1,6 @@
 import numpy as np
 from polyrat import *
+import pytest 
 
 
 @pytest.mark.parametrize("n", [5, 10, 15, 20])
