@@ -8,6 +8,9 @@ def eval_aaa_slow(xeval, x, y, I, b):
 		idx = np.isclose(xeval[i], x[I]).flatten()
 		if np.any(idx):
 			r = (y[I][np.argwhere(idx).flatten()])
+			# Make sure dimensions are consistent
+			if len(y[0].shape) >0:
+				r = r.reshape(y[0].shape)
 		else:
 			num = 0
 			denom = 0
@@ -16,7 +19,9 @@ def eval_aaa_slow(xeval, x, y, I, b):
 				denom += b[j]/(xeval[i] - x[k])
 			r = num/denom
 		reval.append(r)
-	return np.hstack(reval)
+
+
+	return np.array(reval)
 
 def test_eval_aaa():
 	
