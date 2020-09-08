@@ -4,6 +4,7 @@ import numpy as np
 import scipy.linalg
 import scipy.optimize
 from .basis import *
+from .arnoldi import *
 from .polynomial import *
 from iterprinter import IterationPrinter
 
@@ -85,10 +86,11 @@ def linearized_ratfit(X, y, num_degree, denom_degree):
 	"""
 	num_basis = ArnoldiPolynomialBasis(X, num_degree)
 	denom_basis = ArnoldiPolynomialBasis(X, denom_degree)
-			
+	P = num_basis.basis()
+	Q = denom_basis.basis()		
 
 	A = np.hstack([P, np.multiply(-y[:,None], Q) ])
-	x, cond = linearized_solution(A)
+	x, cond = _minimize_2_norm(A)
 	a = x[:P.shape[1]]
 	b = x[-Q.shape[1]:]
 			
