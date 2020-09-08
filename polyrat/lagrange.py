@@ -1,7 +1,7 @@
+import warnings
 import numpy as np
 from scipy.linalg import eig, eigvals, hessenberg
 from .basis import PolynomialBasis
-
 
 
 def lagrange_roots(nodes, weights, coef, deflation = True):

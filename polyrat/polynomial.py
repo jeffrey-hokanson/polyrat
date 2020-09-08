@@ -29,5 +29,5 @@ class LagrangePolynomialInterpolant(Polynomial):
 		self.basis = LagrangePolynomialBasis(X)
 		self.coef = np.copy(y)
 
-	def roots(self, **kwargs):
-		return self.basis.roots(self.coef, **kwargs)	
+	def roots(self, *args, **kwargs):
+		return self.basis.roots(self.coef, *args, **kwargs)	
