@@ -5,6 +5,7 @@ from .basis import *
 from .polynomial import *
 from .skiter import *
 from .rational_ratio import *
+from .aaa import *
 from copy import deepcopy
 
 
@@ -12,7 +13,7 @@ class RationalFunction:
 	pass
 
 
-class RationalApproximation:
+class RationalApproximation(RationalFunction):
 	def __init__(self, num_degree, denom_degree):
 		self.num_degree = num_degree
 		self.denom_degree = denom_degree
@@ -38,6 +39,11 @@ class RationalRatio(RationalFunction):
 	@property
 	def b(self):
 		return self.denominator.coef
+	
+	def __call__(self, X):
+		p = self.numerator(X)
+		q = self.denominator(X)
+		return p/q	
 
 	def refine(self, X, y, **kwargs):
 		a, b = rational_ratio_optimize(y, self.P, self.Q, self.a, self.b, norm = self.norm, **kwargs)
@@ -50,6 +56,12 @@ class RationalRatio(RationalFunction):
 			print(f"final residual norm {res_norm:21.15e}")
 
 
+class LinearizedRationalApproximation(RationalApproximation, RationalRatio):
+	def __init__(self, num_degree, denom__degree):
+		RationalApproximation.__init__(self, num_degree, denom_degree)
+
+	def fit(self, X, y):
+		self.numerator, self.denominator = linearized_ratfit(X, y, self.num_degree, self.denom_degree)
 
 class SKRationalApproximation(RationalApproximation, RationalRatio):
 	r"""
@@ -106,11 +118,50 @@ class SKRationalApproximation(RationalApproximation, RationalRatio):
 			self.refine(X, y)
 
 
-				
+
+
+class RationalBarycentric(RationalFunction):
+	r"""
+	"""
+	def __init__(self, degree):
+		self.degree = int(degree)
+		assert self.degree >= 0, "Degree must be non-negative"
+
+	@property
+	def num_degree(self):
+		return self.degree
+
+	@property
+	def denom_degree(self):
+		return self.degree
+
+
+class AAARationalApproximation(RationalBarycentric):
+	
+	def __init__(self, degree = None, tol = None, verbose = True):
+		self.degree = degree
+		self.tol = tol
+		self.verbose = verbose
+
+	def fit(self, X, y):
+		X = np.array(X)
+		self.y = np.array(y)
+		assert len(X) == len(y), "Length of X and y do not match"
+		self.x = X.flatten()
+		assert len(self.x) == len(y), "AAA only supports scalar-valued inputs"
+
+		self.I, self.b = aaa(self.x, self.y, degree = self.degree, tol = self.tol, verbose = self.verbose)
 
 	def __call__(self, X):
-		p = self.numerator(X)
-		q = self.denominator(X)
-		return p/q	
-					
+		x = np.array(X).flatten().reshape(-1,1)
+		assert len(x) == len(X), "X must be a scalar-valued input"
+		return eval_aaa(x, self.x, self.y, self.I, self.b)
+		
 
+class AAALawsonRationalApproximation(RationalBarycentric):
+	pass
+
+
+
+
+			

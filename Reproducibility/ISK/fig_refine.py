@@ -32,10 +32,10 @@ for name, X, y in data:
 		sk = SKRationalApproximation(m,n, verbose = True, rebase = True, refine = False, maxiter = 10)
 		sk.fit(X,y)
 
-		err_isk[k] = np.linalg.norm(sk(X) - y, 2)
+		err_isk[k] = np.linalg.norm(sk(X) - y, 2)/np.linalg.norm(y, 2)
 		
 		sk.refine(X, y)
-		err_iskr[k] = np.linalg.norm(sk(X) - y, 2)
+		err_iskr[k] = np.linalg.norm(sk(X) - y, 2)/np.linalg.norm(y, 2)
 
 		print(f"original {err_isk[k]:10.3e}; improved {err_iskr[k]:10.3e}")
 
