@@ -1,9 +1,7 @@
 import numpy as np
 from .basis import *
-from .arnoldi import *
-from .lagrange import *
 from copy import deepcopy
-
+import scipy.linalg
 
 class Polynomial:
 	def __init__(self, basis, coef):
@@ -16,23 +14,30 @@ class Polynomial:
 	def eval(self, X):
 		return self.basis.vandermonde(X) @ self.coef
 
-
-class PolynomialApproximation(Polynomial):
-	def __init__(self, degree, basis = None, mode = None):
-		pass
-
-	def fit(self, X, y):
-		pass
-
-
-class LagrangePolynomialInterpolant(Polynomial):
-	def __init__(self, X, y):
-		self.basis = LagrangePolynomialBasis(X)
-		self.coef = np.copy(y)
-
-	def roots(self, *args, **kwargs):
+	def roots(self, *args, **kwargs): 
 		return self.basis.roots(self.coef, *args, **kwargs)	
 
-	@property
-	def nodes(self):
-		return self.basis.nodes
+
+def _polynomial_fit_least_squares(P, y):
+	coef, _, _, _ = scipy.linalg.lstsq(P, y)
+	return coef.flatten()	
+
+class PolynomialApproximation(Polynomial):
+	def __init__(self, degree, Basis = None, norm = 2):
+		if Basis is None:
+			from .arnoldi import ArnoldiPolynomialBasis
+			Basis = ArnoldiPolynomialBasis
+		self.Basis = Basis
+		self.degree = degree
+		self.norm = norm
+
+	def fit(self, X, y):
+		self.basis = self.Basis(X, self.degree)
+		P = self.basis.basis()
+		if self.norm == 2:
+			self.coef = _polynomial_fit_least_squares(P, y)
+		else:
+			raise NotImplementedError
+		
+
+

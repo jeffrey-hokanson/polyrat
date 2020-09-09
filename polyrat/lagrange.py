@@ -2,6 +2,7 @@ import warnings
 import numpy as np
 from scipy.linalg import eig, eigvals, hessenberg
 from .basis import PolynomialBasis
+from .polynomial import Polynomial
 
 
 def lagrange_roots(nodes, weights, coef, deflation = True):
@@ -146,3 +147,15 @@ class LagrangePolynomialBasis(PolynomialBasis):
 		r"""
 		"""
 		return lagrange_roots(self.nodes, self.weights, coef, deflation = deflation)
+
+
+class LagrangePolynomialInterpolant(Polynomial):
+	def __init__(self, X, y):
+		self.basis = LagrangePolynomialBasis(X)
+		self.coef = np.copy(y)
+	
+	@property
+	def nodes(self):
+		return self.basis.nodes
+
+
