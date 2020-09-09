@@ -56,6 +56,12 @@ def test_wilkinson(n, ang, deflate):
 	print("relative error in evaluation", rel_err)
 	assert rel_err < 1e-10, "Error in evaluating Vandermonde matrix"
 
+	# Test evaluation on nodes
+	fX = lpi(lpi.nodes)
+	err = np.linalg.norm(lpi.coef - fX)
+	rel_err = err/np.linalg.norm(lpi.coef)
+	print("relative error in evaluation", rel_err)
+	assert rel_err < 1e-10, "Error in evaluating Vandermonde matrix"
 
 
 

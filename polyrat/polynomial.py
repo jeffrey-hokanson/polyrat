@@ -31,3 +31,7 @@ class LagrangePolynomialInterpolant(Polynomial):
 
 	def roots(self, *args, **kwargs):
 		return self.basis.roots(self.coef, *args, **kwargs)	
+
+	@property
+	def nodes(self):
+		return self.basis.nodes
