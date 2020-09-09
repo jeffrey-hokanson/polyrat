@@ -3,34 +3,29 @@ from copy import deepcopy as copy
 from .aaa import _build_cauchy
 from .arnoldi import ArnoldiPolynomialBasis
 from .skiter import linearized_ratfit
-from .polynomial import LagrangePolynomialInterpolant, Polynomial
+from .polynomial import Polynomial
+from .lagrange import LagrangePolynomialInterpolant
 from .basis import MonomialPolynomialBasis
 from .rational import RationalFunction, RationalRatio
 from iterprinter import IterationPrinter
 import scipy.linalg
 
-def _solve_linearized_svd(num_basis, denom_basis, y):
-	r"""
-	"""
 
-	# TODO: This is the SVD approach;
-	# we should (1) implement this as a separate problem
-	# and (2) make use of the algorithm from DGB15a to 
-	# solve this problem for a vector/matrix valued	f
-	A = np.hstack( [num_basis, -(denom_basis.T*y).T])
-	U, s, VH = scipy.linalg.svd(A, full_matrices = False, compute_uv = True, lapack_driver = 'gesvd')
-	x = VH.conj().T[:,-1]
-	A_cond = s[0]/s[-1]
+def _solve_linearized_vecfit(num_basis, denom_basis, y):
+	A = np.hstack([ num_basis, -(denom_basis[:,1:].T * y).T ])
+	b = y
+	x, res, rank, s = scipy.linalg.lstsq(A, b, overwrite_a = True, overwrite_b = True)
+	a = x[0:num_basis.shape[1]]
+	b = np.hstack([1, x[num_basis.shape[1]:]])
+	return a, b, s[0]/s[-1]
 
-	# Split into numerator and denominator coefficients
-	a = x[:num_basis.shape[1]]
-	b = x[num_basis.shape[1]:]
-	return a, b
+# TODO: Implement a DGB15a variant of the linear solve that allows array-valued y
 
+# TODO: Add matrix-weight option
 
 def vecfit(X, y, num_degree, denom_degree, verbose = True, 
 	Basis = ArnoldiPolynomialBasis, poles0 = 'linearized',
-	maxiter = 50, ftol = 1e-7):
+	maxiter = 50, ftol = 1e-10, btol = 1e-7):
 	r"""Implements Vector Fitting 
 	
 	See: GS99
@@ -49,8 +44,8 @@ def vecfit(X, y, num_degree, denom_degree, verbose = True,
 
 
 	if verbose:
-		printer = IterationPrinter(it = '4d', res = '20.10e', delta = '10.4e')
-		printer.print_header(it = 'iter', res = 'residual norm', delta = 'Δ fit') 
+		printer = IterationPrinter(it = '4d', res = '20.10e', delta = '10.4e', bnorm = '10.4e', cond = '10.4e')
+		printer.print_header(it = 'iter', res = 'residual norm', delta = 'Δ fit', bnorm = '‖b - e₀‖₂', cond = 'condion #') 
 
 	if isinstance(poles0, str):
 		if poles0 == 'GS':
@@ -75,14 +70,16 @@ def vecfit(X, y, num_degree, denom_degree, verbose = True,
 
 	r_old = np.zeros(y.shape)
 
+	best_fit = {'residual_norm':np.inf}
+
 	for it in range(maxiter):
 		C = _build_cauchy(X, poles)
 
 		num_basis = np.hstack([C, V])
 		denom_basis = np.hstack([np.ones((len(X), 1)), C])
 
-		a, b = _solve_linearized_svd(num_basis, denom_basis, y)
-		b_norm = np.linalg.norm(b)
+		a, b, cond = _solve_linearized_vecfit(num_basis, denom_basis, y)
+		b_norm = b[0] #np.linalg.norm(b)
 		b /= b_norm
 		a /= b_norm
 	
@@ -91,10 +88,16 @@ def vecfit(X, y, num_degree, denom_degree, verbose = True,
 
 		residual_norm = np.linalg.norm( (y - r).flatten(), 2)
 		delta_norm = np.linalg.norm( (r_old - r).flatten(), 2)
-		
-	
+		b_norm = np.linalg.norm(b[1:]/b[0], np.inf)
+
+		if residual_norm < best_fit['residual_norm']:
+			best_fit['residual_norm'] = residual_norm
+			best_fit['a'] = a
+			best_fit['b'] = b
+			best_fit['poles'] = poles
+
 		if verbose:
-			printer.print_iter(it = it, res = residual_norm, delta = delta_norm)	
+			printer.print_iter(it = it, res = residual_norm, delta = delta_norm, bnorm = b_norm, cond = cond)	
 
 		if it == maxiter - 1:
 			break
@@ -102,7 +105,11 @@ def vecfit(X, y, num_degree, denom_degree, verbose = True,
 		if delta_norm < ftol:
 			if verbose: print("terminated due to small change in approximation")
 			break
-		
+
+		if b_norm < btol:
+			if verbose: print("terminated due to denominator being approximately constant")
+			break
+	
 		# Update roots only if we are going to continue the iteration
 		# (if we update these we change the polynomial values)
 		# This is the root finding approach that Gustavsen takes in Vector Fitting
@@ -111,11 +118,12 @@ def vecfit(X, y, num_degree, denom_degree, verbose = True,
 
 		r_old = r		
 
+	a = best_fit['a']
+	b = best_fit['b']
+	poles = best_fit['poles']
 
 	if bonus_basis:
-		print(a[len(poles):])
 		bonus_poly = Polynomial(bonus_basis, a[len(poles):])
-		print(V @ a[len(poles):] - bonus_poly(X))
 	else:
 		bonus_poly = Polynomial(MonomialPolynomialBasis(X, 0), 0*a[0:1])
 
@@ -132,11 +140,12 @@ class VectorFittingRationalFunction(RationalRatio):
 
 	def eval(self, X):
 		C = _build_cauchy(X, self.poles)
-		r = (C @ self._a)/(self._b[0] + C @ self._b[1:])
+		num = C @ self._a
+		denom = self._b[0] + C @ self._b[1:]
 		if self.bonus_poly is not None:
-			r += self.bonus_poly(X)
+			num += self.bonus_poly(X)
 
-		return r
+		return num/denom
 
 			
 
