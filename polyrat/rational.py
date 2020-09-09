@@ -10,8 +10,11 @@ from copy import deepcopy
 
 
 class RationalFunction:
-	pass
-
+	def __call__(self, X):
+		return self.eval(X)
+	
+	def eval(self, X):
+		return self.__call__(X)
 
 class RationalApproximation(RationalFunction):
 	def __init__(self, num_degree, denom_degree):
@@ -40,10 +43,12 @@ class RationalRatio(RationalFunction):
 	def b(self):
 		return self.denominator.coef
 	
-	def __call__(self, X):
+	def eval(self, X):
 		p = self.numerator(X)
 		q = self.denominator(X)
 		return p/q	
+
+
 
 	def refine(self, X, y, **kwargs):
 		a, b = rational_ratio_optimize(y, self.P, self.Q, self.a, self.b, norm = self.norm, **kwargs)

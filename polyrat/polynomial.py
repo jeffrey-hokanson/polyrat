@@ -16,6 +16,7 @@ class Polynomial:
 	def eval(self, X):
 		return self.basis.vandermonde(X) @ self.coef
 
+
 class PolynomialApproximation(Polynomial):
 	def __init__(self, degree, basis = None, mode = None):
 		pass
