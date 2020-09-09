@@ -6,7 +6,7 @@ import pytest
 @pytest.mark.parametrize("n", [5, 10, 15, 20])
 @pytest.mark.parametrize("ang", [1, (1 +1j)/np.sqrt(2)])
 @pytest.mark.parametrize("deflate", [True, False])
-def test_roots_wilkinson(n, ang, deflate):
+def test_wilkinson(n, ang, deflate):
 	r""" Test computation of barycentric polynomial roots using the Wilkinson polynomial
 
 	This test is the first one 
@@ -47,5 +47,17 @@ def test_roots_wilkinson(n, ang, deflate):
 	assert err < 1e-10, "Could not determine roots accurately"
 
 
+	# Now test evaluation
+	X = ang*np.linspace(0, n+1, 500)
+	fX_true = wilkinson(X)
+	fX = lpi(X)
+	err = np.linalg.norm(fX_true - fX)
+	rel_err = err/np.linalg.norm(fX_true)
+	print("relative error in evaluation", rel_err)
+	assert rel_err < 1e-10, "Error in evaluating Vandermonde matrix"
+
+
+
+
 if __name__ == '__main__':
-	test_roots_wilkinson(20, 1, True)
+	test_wilkinson(20, 1, True)

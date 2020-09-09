@@ -103,6 +103,27 @@ def lagrange_roots(nodes, weights, coef, deflation = True):
 		return ew
 
 
+
+def lagrange_vandermonde(nodes, weights, X):
+	r""" Build the Vandermonde matrix associated with 
+	"""
+	x = X.flatten()
+	assert len(x) == len(X), "Input must be one dimensional"
+
+	with np.errstate(divide = 'ignore', invalid = 'ignore'):
+		# The columns of the Vandermonde matrix 
+		V = np.array([w/(x - n) for n, w in zip(nodes, weights)]).T
+		for row in np.argwhere(~np.all(np.isfinite(V), axis = 1)):
+			V[row] = 0
+			V[row, np.argmin(np.abs(x[row] - nodes)).flatten()] = 1.
+		
+		denom = np.sum(V, axis = 1)
+		V /= denom[:, None]
+		
+	
+	return V
+
+
 class LagrangePolynomialBasis(PolynomialBasis):
 	r""" Constructs a Lagrange polynomial basis in barycentric form
 
@@ -119,18 +140,8 @@ class LagrangePolynomialBasis(PolynomialBasis):
 			])
 
 	def vandermonde(self, X):
-		x = X.flatten()
-		assert len(x) == len(X), "Input must be one dimensional"
-
-		with np.errstate(divide = 'ignore', invalid = 'ignore'):
-			# The columns of the Vandermonde matrix 
-			V = np.hstack([w/(x - n) for n, w in zip(self.nodes, self.weights)])
-			for row in np.argwhere(~np.all(np.isfinite(V), axis = 1)):
-				V[row] = 0
-				V[row, np.argmin(np.abs(x[row] - self.nodes)).flatten()] = 1.
-		
-		return V
-
+		return lagrange_vandermonde(self.nodes, self.weights, X)
+	
 	def roots(self, coef, deflation = True):
 		r"""
 		"""
