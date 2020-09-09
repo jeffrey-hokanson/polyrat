@@ -164,3 +164,16 @@ class ArnoldiPolynomialBasis(PolynomialBasis):
 
 	def vandermonde(self, X, weight = None):
 		return vandermonde_arnoldi_eval(X, self._R, self._indices, self.mode, weight = weight)
+
+	def roots(self, coef, *args, **kwargs):
+		from .lagrange import LagrangePolynomialInterpolant
+		y = self.basis() @ coef
+		# Take the smallest points
+		I = np.argsort(np.abs(y))
+		X = self.X[I[0:self.degree+1]]
+		y = y[I[0:self.degree+1]]
+		print("X", X)
+		print("y", y)
+		# Convert to a Lagrange Polynomial and compute the roots
+		lpi = LagrangePolynomialInterpolant(X, y)
+		return lpi.roots(*args, **kwargs)	
