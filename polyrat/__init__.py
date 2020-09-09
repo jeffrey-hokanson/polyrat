@@ -1,7 +1,14 @@
+
+# Utilities
+from .sorted_norm import *
+
+# Polynomial utils
 from .index import *
 from .basis import *
-from .lagrange import *
-from .rational import *
 from .polynomial import *
-from .sorted_norm import *
+from .lagrange import *
+from .arnoldi import *
+
+# Rational 
+from .rational import *
 from .vecfit import *
