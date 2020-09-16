@@ -6,20 +6,19 @@ import numpy as np
 from .basis import PolynomialBasis
 from .index import *
 
-def _update_rule_total(indices, idx):
+def _update_rule(indices, idx):
 	diff = indices - idx
-	j = np.max(np.argwhere( (np.sum(np.abs(diff), axis = 1) <= 1) & (np.min(diff, axis = 1) == -1)))
-	i = int(np.argwhere(diff[j] == -1))
-	return i, j	
-
-def _update_rule_max(idx, ids):
-	# Determine which column to multiply by
-	diff = idx - ids
-	# Here we pick the *least* recent column that is one off
-	# to ensure the 
 	j = np.min(np.argwhere( (np.sum(np.abs(diff), axis = 1) <= 1) & (np.min(diff, axis = 1) == -1)))
 	i = int(np.argwhere(diff[j] == -1))
 	return i, j	
+
+#def _update_rule_max(idx, ids):
+#	# Determine which column to multiply by
+#	diff = idx - ids
+#	# Here we pick the *least* recent column that is one off
+#	j = np.min(np.argwhere( (np.sum(np.abs(diff), axis = 1) <= 1) & (np.min(diff, axis = 1) == -1)))
+#	i = int(np.argwhere(diff[j] == -1))
+#	return i, j	
 
 
 def vandermonde_arnoldi_CGS(X, degree, weight = None, mode = None):
@@ -63,10 +62,8 @@ def vandermonde_arnoldi_CGS(X, degree, weight = None, mode = None):
 
 	if mode == 'total':
 		indices = total_degree_index(dim, degree)
-		update_rule = _update_rule_max
 	elif mode == 'max':
 		indices = max_degree_index(degree)
-		update_rule = _update_rule_max
 	
 	Q = np.zeros((M, len(indices)), dtype = X.dtype)
 	R = np.zeros((len(indices), len(indices)), dtype = X.dtype)
@@ -81,7 +78,7 @@ def vandermonde_arnoldi_CGS(X, degree, weight = None, mode = None):
 
 
 	for k, idx in iter_indices:
-		i, j = update_rule(indices, idx)
+		i, j = _update_rule(indices, idx)
 		# Form new column	
 		q = X[:,i] * Q[:,j]
 		
@@ -111,10 +108,6 @@ def vandermonde_arnoldi_eval(X, R, indices, mode, weight = None):
 	if weight is None:
 		weight = np.ones(M, dtype = X.dtype)	
 	
-	if mode == 'total':
-		update_rule = _update_rule_total 
-	elif mode == 'max':
-		update_rule = _update_rule_max
 
 	iter_indices = enumerate(indices)
 
@@ -124,7 +117,7 @@ def vandermonde_arnoldi_eval(X, R, indices, mode, weight = None):
 	
 	# Now work on the remaining columns
 	for k, ids in iter_indices:
-		i, j = update_rule(indices[:k], ids)
+		i, j = _update_rule(indices[:k], ids)
 		# Form new column
 		w = X[:,i] * W[:,j]
 
@@ -166,17 +159,6 @@ class ArnoldiPolynomialBasis(PolynomialBasis):
 		return vandermonde_arnoldi_eval(X, self._R, self._indices, self.mode, weight = weight)
 
 	def roots(self, coef, *args, **kwargs):
-#		from .lagrange import LagrangePolynomialInterpolant
-#		y = self.basis() @ coef
-#		ys = np.sort(np.abs(y))
-#			
-#		# Take the smallest points
-#		I = np.argsort(np.abs(y))
-#		XI = self.X[I[0:self.degree+1]]
-#		yI = y[I[0:self.degree+1]]
-#		# Convert to a Lagrange Polynomial and compute the roots
-#		lpi = LagrangePolynomialInterpolant(XI, yI)
-#		return lpi.roots(*args, **kwargs)
 		from .basis import LegendrePolynomialBasis
 		from .polynomial import PolynomialApproximation
 		y = self.basis() @ coef
