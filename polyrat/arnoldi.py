@@ -63,7 +63,7 @@ def vandermonde_arnoldi_CGS(X, degree, weight = None, mode = None):
 
 	if mode == 'total':
 		indices = total_degree_index(dim, degree)
-		update_rule = _update_rule_total 
+		update_rule = _update_rule_max
 	elif mode == 'max':
 		indices = max_degree_index(degree)
 		update_rule = _update_rule_max
