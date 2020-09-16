@@ -103,8 +103,8 @@ y = np.array([ C @ np.linalg.solve(z*np.eye(A.shape[0]) - A, B)  for z in X]).fl
 data += [['beam', X.reshape(-1,1), y]]
 
 # Pick which experiments to run
-#data = [d for d in data if d[0] in ['abs', 'beam', 'tan256']]
-data = [d for d in data if d[0] in ['exp']]
+data = [d for d in data if d[0] in ['abs', 'exp' 'beam', 'tan256']]
+#data = [d for d in data if d[0] in ['exp']]
 
 # Range of parameters
 mns = [(k,k) for k in range(2, 51, 1)]
