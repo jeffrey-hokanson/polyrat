@@ -51,7 +51,7 @@ def vecfit(X, y, num_degree, denom_degree, verbose = True,
 		if poles0 == 'linearized':
 			# Generate initial poles by one step of SK iteration (i.e., the linearized ratfit)
 			numerator, denominator = linearized_ratfit(X, y, num_degree, denom_degree)
-			poles = denominator.roots()
+			poles = denominator.roots().flatten()
 		elif poles0 == 'GS':
 			# Generate initial poles as recommened in GS99, Sec. 3.2 (eqns. 9-10)
 			im_max = np.max(np.abs(X.imag))
@@ -61,7 +61,7 @@ def vecfit(X, y, num_degree, denom_degree, verbose = True,
 			raise NotImplementedError 
 	else:
 		assert len(poles0) == denom_degree, "Number of poles must match the degree of the denominator"
-		poles = np.array(poles0)		
+		poles = np.array(poles0)	
 
 	# Construct the Vandermonde matrix for the remaining terms
 	if num_degree - denom_degree >= 0:
