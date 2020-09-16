@@ -95,6 +95,10 @@ def _rational_ratio_optimize_pin_2norm_complex(y, P, Q, a0, b0, **kwargs):
 	return x[:2*m].view(complex), x[2*m:].view(complex)
 	
 
+################################################################################
+# sup-norm optimization utilities
+################################################################################
+
 # setup the objective for the constraint
 def _rational_residual_squared_abs_complex(x, P, Q, y):
 	r = _rational_residual_complex(x, P, Q, y)
@@ -182,6 +186,8 @@ def rational_ratio_optimize(y, P, Q, a0, b0, norm = 2, **kwargs):
 	b0
 	norm: [1, 2, np.inf]
 		Norm in which to construct the approximation
+	**kwargs
+		Additional arguments to be passed to the optimization solver
 	"""
 	isreal = all([np.all(np.isreal(x)) for x in [y, P, Q, a0, b0]])
 
