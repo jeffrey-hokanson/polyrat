@@ -58,6 +58,7 @@ def test_skfit_exact(M, dim, num_degree, denom_degree, refine, norm, Basis, seed
 	assert err < 5e-8, "Expected an exact fit"
 
 if __name__ == '__main__':
+	test_skfit_exact(1000, 2, 5, 5, True, ArnoldiPolynomialBasis, 0, complex_ = False, rebase = True)
 	pass
 	#test_skfit_rebase()
 	#test_minimize_1_norm()
