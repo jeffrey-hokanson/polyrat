@@ -23,7 +23,7 @@ class TensorProductPolynomialBasis(PolynomialBasis):
 		raise NotImplementedError
 	def _der(self, *args, **kwargs):
 		raise NotImplementedError
-	def _roots(self, *args, **kwargs):
+	def roots(self, *args, **kwargs):
 		raise NotImplementedError
 
 	def __init__(self, X, degree):
@@ -80,7 +80,7 @@ class MonomialPolynomialBasis(TensorProductPolynomialBasis):
 		return polyvander(*args, **kwargs)
 	def _der(self, *args, **kwargs):
 		return polyder(*args, **kwargs)
-	def _roots(self, *args, **kwargs):
+	def roots(self, *args, **kwargs):
 		return polyroots(*args, **kwargs)
 
 
@@ -89,7 +89,7 @@ class LegendrePolynomialBasis(TensorProductPolynomialBasis):
 		return legvander(*args, **kwargs)
 	def _der(self, *args, **kwargs):
 		return legder(*args, **kwargs)
-	def _roots(self, *args, **kwargs):
+	def roots(self, *args, **kwargs):
 		return legroots(*args, **kwargs)
 
 class ChebyshevPolynomialBasis(TensorProductPolynomialBasis):
@@ -97,7 +97,7 @@ class ChebyshevPolynomialBasis(TensorProductPolynomialBasis):
 		return chebvander(*args, **kwargs)
 	def _der(self, *args, **kwargs):
 		return chebder(*args, **kwargs)
-	def _roots(self, *args, **kwargs):
+	def roots(self, *args, **kwargs):
 		return chebroots(*args, **kwargs)
 
 class HermitePolynomialBasis(TensorProductPolynomialBasis):
@@ -105,7 +105,7 @@ class HermitePolynomialBasis(TensorProductPolynomialBasis):
 		return hermvander(*args, **kwargs)
 	def _der(self, *args, **kwargs):
 		return hermder(*args, **kwargs)
-	def _roots(self, *args, **kwargs):
+	def roots(self, *args, **kwargs):
 		return hermroots(*args, **kwargs)
 	
 	def _set_scale(self, X):
@@ -121,7 +121,7 @@ class LaguerrePolynomialBasis(TensorProductPolynomialBasis):
 		return lagvander(*args, **kwargs)
 	def _der(self, *args, **kwargs):
 		return lagder(*args, **kwargs)
-	def _roots(self, *args, **kwargs):
+	def roots(self, *args, **kwargs):
 		return lagroots(*args, **kwargs)
 
 	def _set_scale(self, X):

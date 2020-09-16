@@ -79,13 +79,13 @@ def _minimize_1_norm(A):
 #	return x, s
 	
 
-def linearized_ratfit(X, y, num_degree, denom_degree):
+def linearized_ratfit(X, y, num_degree, denom_degree, Basis = ArnoldiPolynomialBasis):
 	r""" This solves the linearized rational approximation problem
 
 	See: AKL+19x
 	"""
-	num_basis = ArnoldiPolynomialBasis(X, num_degree)
-	denom_basis = ArnoldiPolynomialBasis(X, denom_degree)
+	num_basis = Basis(X, num_degree)
+	denom_basis = Basis(X, denom_degree)
 	P = num_basis.basis()
 	Q = denom_basis.basis()		
 

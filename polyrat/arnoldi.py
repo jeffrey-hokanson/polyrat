@@ -166,14 +166,28 @@ class ArnoldiPolynomialBasis(PolynomialBasis):
 		return vandermonde_arnoldi_eval(X, self._R, self._indices, self.mode, weight = weight)
 
 	def roots(self, coef, *args, **kwargs):
-		from .lagrange import LagrangePolynomialInterpolant
+#		from .lagrange import LagrangePolynomialInterpolant
+#		y = self.basis() @ coef
+#		ys = np.sort(np.abs(y))
+#			
+#		# Take the smallest points
+#		I = np.argsort(np.abs(y))
+#		XI = self.X[I[0:self.degree+1]]
+#		yI = y[I[0:self.degree+1]]
+#		# Convert to a Lagrange Polynomial and compute the roots
+#		lpi = LagrangePolynomialInterpolant(XI, yI)
+#		return lpi.roots(*args, **kwargs)
+		from .basis import LegendrePolynomialBasis
+		from .polynomial import PolynomialApproximation
 		y = self.basis() @ coef
-		# Take the smallest points
-		I = np.argsort(np.abs(y))
-		X = self.X[I[0:self.degree+1]]
-		y = y[I[0:self.degree+1]]
-		print("X", X)
-		print("y", y)
-		# Convert to a Lagrange Polynomial and compute the roots
-		lpi = LagrangePolynomialInterpolant(X, y)
-		return lpi.roots(*args, **kwargs)	
+		poly = PolynomialApproximation(self.degree, Basis = LegendrePolynomialBasis)
+		poly.fit(self.X, y)
+		roots = poly.roots()
+#		def print_roots(r):
+#			fr = self.vandermonde(r.reshape(-1,1)) @ coef
+#			for ri, fri in zip(r, fr):
+#				print(f'root: {ri.real:+10.5e} {ri.imag:+10.5e} I \t abs fun value', np.abs(fri))
+#
+#		print_roots(roots)
+		return roots
+

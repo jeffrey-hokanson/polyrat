@@ -5,7 +5,7 @@ from .arnoldi import ArnoldiPolynomialBasis
 from .skiter import linearized_ratfit
 from .polynomial import Polynomial
 from .lagrange import LagrangePolynomialInterpolant
-from .basis import MonomialPolynomialBasis
+from .basis import MonomialPolynomialBasis, LegendrePolynomialBasis
 from .rational import RationalFunction, RationalRatio
 from iterprinter import IterationPrinter
 import scipy.linalg
@@ -48,17 +48,20 @@ def vecfit(X, y, num_degree, denom_degree, verbose = True,
 		printer.print_header(it = 'iter', res = 'residual norm', delta = 'Δ fit', bnorm = '‖b - e₀‖₂', cond = 'condion #') 
 
 	if isinstance(poles0, str):
-		if poles0 == 'GS':
+		if poles0 == 'linearized':
+			# Generate initial poles by one step of SK iteration (i.e., the linearized ratfit)
+			numerator, denominator = linearized_ratfit(X, y, num_degree, denom_degree)
+			poles = denominator.roots()
+		elif poles0 == 'GS':
 			# Generate initial poles as recommened in GS99, Sec. 3.2 (eqns. 9-10)
 			im_max = np.max(np.abs(X.imag))
+			assert im_max > 0
 			poles = -im_max/100 + 1j*np.linspace(-im_max, im_max, denom_degree)
-		elif poles0 == 'linearized':
-			numerator, denominator = linearized_ratfit(X, y, num_degree, denom_degree)
-			poles = denominator.roots() 
+		else:
+			raise NotImplementedError 
 	else:
 		assert len(poles0) == denom_degree, "Number of poles must match the degree of the denominator"
 		poles = np.array(poles0)		
-
 
 	# Construct the Vandermonde matrix for the remaining terms
 	if num_degree - denom_degree >= 0:
@@ -157,4 +160,6 @@ class VectorFittingRationalApproximation(VectorFittingRationalFunction):
 		self.kwargs = kwargs
 	
 	def fit(self, X, y):
-		self.a, self.b, self.poles, self.bonus_poly	= vecfit(X, y, *self.args, **self.kwargs)
+		self._a, self._b, self.poles, self.bonus_poly = vecfit(X, y, self.num_degree, self.denom_degree, *self.args, **self.kwargs)
+
+	
