@@ -57,6 +57,42 @@ def _rational_jacobian_complex(x, P, Q):
 	JRI[0::2,1::2] = -J.imag
 	JRI[1::2,0::2] = J.imag
 	return JRI
+
+
+################################################################################
+# 2-norm optimization proceedures
+################################################################################
+
+def _rational_ratio_optimize_pin_2norm_real(y, P, Q, a0, b0, **kwargs):
+	m, n = P.shape[1], Q.shape[1]
+	k = np.argmax(np.abs(b0))
+	x0 = np.hstack([a0, b0[:k], b0[k+1:]])
+	xfun = lambda x: np.hstack([x[:m+k], b0[k], x[m+k:]])
+	
+	mask = np.ones(m+n, dtype = np.bool)
+	mask[m+k] = 0
+	res = lambda x: _rational_residual_real(xfun(x), P, Q, y)
+	jac = lambda x: _rational_jacobian_real(xfun(x), P, Q)[:,mask]
+
+	result = scipy.optimize.least_squares(res, x0, jac, **kwargs)
+	x = xfun(result.x)
+	return x[:m], x[m:]
+
+
+def _rational_ratio_optimize_pin_2norm_complex(y, P, Q, a0, b0, **kwargs):
+	m, n = P.shape[1], Q.shape[1]
+	k = np.argmax(np.abs(b0))
+	x0 = np.hstack([a0, b0[:k], b0[k+1:]])
+	xfun = lambda x: np.hstack([x[:2*(m+k)], b0[k].real, b0[k].imag, x[2*(m+k):]])
+	
+	mask = np.ones(2*(m+n), dtype = np.bool)
+	mask[2*(m+k):2*(m+k)+2] = 0
+	res = lambda x: _rational_residual_complex(xfun(x), P, Q, y)
+	jac = lambda x: _rational_jacobian_complex(xfun(x), P, Q)[:,mask]
+
+	result = scipy.optimize.least_squares(res, x0.view(float), jac, verbose = 2)
+	x = xfun(result.x)
+	return x[:2*m].view(complex), x[2*m:].view(complex)
 	
 
 # setup the objective for the constraint
@@ -161,22 +197,10 @@ def rational_ratio_optimize(y, P, Q, a0, b0, norm = 2, **kwargs):
 		y = y.astype(np.complex)	
 	
 	if isreal and norm == 2:
-		res = lambda x: _rational_residual_real(x, P, Q, y)
-		jac = lambda x: _rational_jacobian_real(x, P, Q) 
-		
-		res = scipy.optimize.least_squares(res, x0, jac, **kwargs)
-		a = res.x[:m]
-		b = res.x[-n:]
-		return a, b	
+		return _rational_ratio_optimize_pin_2norm_real(y, P, Q, a0, b0, **kwargs)
 			
 	elif (not isreal) and norm == 2:
-		res = lambda x: _rational_residual_complex(x, P, Q, y)
-		jac = lambda x: _rational_jacobian_complex(x, P, Q) 
-		
-		res = scipy.optimize.least_squares(res, x0.view(float), jac, **kwargs)
-		a = res.x[:2*m].view(complex)
-		b = res.x[-2*n:].view(complex)	
-		return a,b
+		return _rational_ratio_optimize_pin_2norm_complex(y, P, Q, a0, b0, **kwargs)
 
 	else:
 		mess = f"The combination of norm={norm} and "
