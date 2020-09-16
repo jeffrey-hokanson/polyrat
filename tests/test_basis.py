@@ -163,9 +163,29 @@ def test_subspace_angles(seed, degree, dim,  Basis):
 		assert np.max(ang) < tol
 
 
+@pytest.mark.parametrize("Basis", 
+	[MonomialPolynomialBasis,
+	 LegendrePolynomialBasis,
+	 ChebyshevPolynomialBasis,
+	 HermitePolynomialBasis, 
+	 LaguerrePolynomialBasis])
+@pytest.mark.parametrize("dim", [1,2,3])
+def test_scale(Basis, dim):
+	X = np.random.randn(1000, dim)
+	basis = Basis(X, 2)
+	Y = basis._scale(X)
+	Z = basis._inv_scale(Y)
+	err = np.linalg.norm(Z - X, np.inf)
+	print("error", err)
+	assert err < 1e-10, "Scaling/inverse scaling does not map to identity"
 
 
 if __name__ == '__main__':
 	#test_monomial_total(100, 10, 3, MonomialPolynomialBasis,0) 
 	#test_monomial_max(100, [4], MonomialPolynomialBasis,0) 
-	test_subspace_angles(10, [1,4], 2, ArnoldiPolynomialBasis)
+	#test_subspace_angles(10, [1,4], 2, ArnoldiPolynomialBasis)
+	test_scale(MonomialPolynomialBasis, 1)
+
+
+
+

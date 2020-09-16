@@ -165,11 +165,6 @@ class ArnoldiPolynomialBasis(PolynomialBasis):
 		poly = PolynomialApproximation(self.degree, Basis = LegendrePolynomialBasis)
 		poly.fit(self.X, y)
 		roots = poly.roots()
-#		def print_roots(r):
-#			fr = self.vandermonde(r.reshape(-1,1)) @ coef
-#			for ri, fri in zip(r, fr):
-#				print(f'root: {ri.real:+10.5e} {ri.imag:+10.5e} I \t abs fun value', np.abs(fri))
-#
-#		print_roots(roots)
+		
 		return roots
 

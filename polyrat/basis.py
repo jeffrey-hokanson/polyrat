@@ -49,6 +49,8 @@ class TensorProductPolynomialBasis(PolynomialBasis):
 		"""
 		return 2*(X-self._lb[None,:])/(self._ub[None,:] - self._lb[None,:]) - 1
 
+	def _inv_scale(self, X):
+		return X*(self._ub[None,:] - self._lb[None,:])/2.0 + (self._ub[None,:] + self._lb[None,:])/2.0
 
 	def vandermonde(self, X):
 		r""" Construct the Vandermonde matrix
@@ -81,7 +83,7 @@ class MonomialPolynomialBasis(TensorProductPolynomialBasis):
 	def _der(self, *args, **kwargs):
 		return polyder(*args, **kwargs)
 	def roots(self, *args, **kwargs):
-		return polyroots(*args, **kwargs)
+		return self._inv_scale(polyroots(*args, **kwargs))
 
 
 class LegendrePolynomialBasis(TensorProductPolynomialBasis):
@@ -90,7 +92,7 @@ class LegendrePolynomialBasis(TensorProductPolynomialBasis):
 	def _der(self, *args, **kwargs):
 		return legder(*args, **kwargs)
 	def roots(self, *args, **kwargs):
-		return legroots(*args, **kwargs)
+		return self._inv_scale(legroots(*args, **kwargs))
 
 class ChebyshevPolynomialBasis(TensorProductPolynomialBasis):
 	def _vander(self, *args, **kwargs):
@@ -98,7 +100,7 @@ class ChebyshevPolynomialBasis(TensorProductPolynomialBasis):
 	def _der(self, *args, **kwargs):
 		return chebder(*args, **kwargs)
 	def roots(self, *args, **kwargs):
-		return chebroots(*args, **kwargs)
+		return self._inv_scale(chebroots(*args, **kwargs))
 
 class HermitePolynomialBasis(TensorProductPolynomialBasis):
 	def _vander(self, *args, **kwargs):
@@ -106,7 +108,7 @@ class HermitePolynomialBasis(TensorProductPolynomialBasis):
 	def _der(self, *args, **kwargs):
 		return hermder(*args, **kwargs)
 	def roots(self, *args, **kwargs):
-		return hermroots(*args, **kwargs)
+		return self._inv_scale(hermroots(*args, **kwargs))
 	
 	def _set_scale(self, X):
 		self._mean = np.mean(X, axis = 0)
@@ -115,6 +117,8 @@ class HermitePolynomialBasis(TensorProductPolynomialBasis):
 	def _scale(self, X):		
 		return (X - self._mean[None,:])/self._std[None,:]/np.sqrt(2)
 
+	def _inv_scale(self, X):
+		return np.sqrt(2)*self._std[None,:]*X + self._mean[None,:]
 
 class LaguerrePolynomialBasis(TensorProductPolynomialBasis):
 	def _vander(self, *args, **kwargs):
@@ -122,7 +126,7 @@ class LaguerrePolynomialBasis(TensorProductPolynomialBasis):
 	def _der(self, *args, **kwargs):
 		return lagder(*args, **kwargs)
 	def roots(self, *args, **kwargs):
-		return lagroots(*args, **kwargs)
+		return self._inv_scale(lagroots(*args, **kwargs))
 
 	def _set_scale(self, X):
 		r""" Laguerre polynomial expects x[i] to be distributed like exp[-lam*x] on [0,infty)
@@ -134,6 +138,8 @@ class LaguerrePolynomialBasis(TensorProductPolynomialBasis):
 	def _scale(self, X):
 		return self._a[None,:]*(X - self._lb[None,:])
 		
+	def _inv_scale(self, X):
+		return X/self._a[None,:] + self._lb[None,:]
 
 
 
