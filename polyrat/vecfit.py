@@ -50,7 +50,7 @@ def vecfit(X, y, num_degree, denom_degree, verbose = True,
 	if isinstance(poles0, str):
 		if poles0 == 'linearized':
 			# Generate initial poles by one step of SK iteration (i.e., the linearized ratfit)
-			numerator, denominator = linearized_ratfit(X, y, num_degree, denom_degree)
+			numerator, denominator = linearized_ratfit(X, y, num_degree, denom_degree, simultaneous = True)
 			poles = denominator.roots().flatten()
 		elif poles0 == 'GS':
 			# Generate initial poles as recommened in GS99, Sec. 3.2 (eqns. 9-10)

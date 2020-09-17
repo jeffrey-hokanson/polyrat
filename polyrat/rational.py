@@ -62,11 +62,12 @@ class RationalRatio(RationalFunction):
 
 
 class LinearizedRationalApproximation(RationalApproximation, RationalRatio):
-	def __init__(self, num_degree, denom_degree):
+	def __init__(self, num_degree, denom_degree, **kwargs):
 		RationalApproximation.__init__(self, num_degree, denom_degree)
+		self.kwargs = kwargs
 
 	def fit(self, X, y):
-		self.numerator, self.denominator = linearized_ratfit(X, y, self.num_degree, self.denom_degree)
+		self.numerator, self.denominator = linearized_ratfit(X, y, self.num_degree, self.denom_degree, **self.kwargs)
 
 class SKRationalApproximation(RationalApproximation, RationalRatio):
 	r"""

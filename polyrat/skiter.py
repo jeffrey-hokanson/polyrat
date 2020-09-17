@@ -1,6 +1,7 @@
 """ Routines implementing variants of the Sanathanan-Koerner iteration
 """
 import numpy as np
+from numpy.linalg import LinAlgError
 import scipy.linalg
 import scipy.optimize
 from .basis import *
@@ -77,9 +78,9 @@ def _minimize_1_norm(A):
 #	x /= np.linalg.norm(x)
 #	x *= np.sign(x[0])
 #	return x, s
-	
+		
 
-def linearized_ratfit(X, y, num_degree, denom_degree, Basis = ArnoldiPolynomialBasis):
+def linearized_ratfit(X, y, num_degree, denom_degree, Basis = ArnoldiPolynomialBasis, simultaneous = False):
 	r""" This solves the linearized rational approximation problem
 
 	See: AKL+19x
@@ -92,26 +93,29 @@ def linearized_ratfit(X, y, num_degree, denom_degree, Basis = ArnoldiPolynomialB
 	# diag(y) @ Q
 	yQ = np.multiply(y[:,None], Q)
 	
-	# In AKL+19x implementation they reduce to a problem only over b
-	# by using the pseudoinverse to implicitly solve for a
-	# (much like in Variable Projection)
 
-	if Basis == ArnoldiPolynomialBasis:
+	if simultaneous:
+		A = np.hstack([P, -yQ])
+		x, cond = _minimize_2_norm(A)
+		a = x[:P.shape[1]]
+		b = x[-Q.shape[1]:]
+
+	elif Basis == ArnoldiPolynomialBasis:
+		# In AKL+19x implementation they reduce to a problem only over b
+		# by using the pseudoinverse to implicitly solve for a
+		# (much like in Variable Projection)
 		# In this case the basis P has orthonormal columns, so we have no
 		# need for the pseudoinverse
 		W = P @ (P.conj().T @ yQ) - yQ
 		b, cond = _minimize_2_norm(W)
+		
 		# and then idenify a via the pseudo-inverse
-		a = P.conj().T @ yQ @ b
+		a = P.conj().T @ (yQ @ b)
 	else:
 		W = P @ np.linalg.lstsq(P, yQ, rcond = None)[0] - yQ
 		b, cond = _minimize_2_norm(W)
 		a = np.linalg.lstsq(P, yQ @ b, rcond = None)[0]
 
-	#A = np.hstack([P, np.multiply(-y[:,None], Q) ])
-	#x, cond = _minimize_2_norm(A)
-	#a = x[:P.shape[1]]
-	#b = x[-Q.shape[1]:]
 			
 	numerator = Polynomial(num_basis, a)
 	denominator = Polynomial(denom_basis, b)
@@ -258,9 +262,9 @@ def skfit_rebase(X, y, num_degree, denom_degree, maxiter = 20, verbose = True,
 
 			delta_fit = np.linalg.norm(fit - fit_old, norm)		
 			res_norm = np.linalg.norm(fit - y, norm)
-
-		except ValueError as e:
-			print(e)
+		
+		except (LinAlgError, ValueError) as e:
+			if verbose: print(e)
 			break
 	
 
