@@ -1,7 +1,7 @@
 import numpy as np
 import scipy.linalg
 from iterprinter import IterationPrinter
-
+from .rational import RationalBarycentric
 
 def eval_barcentric(xeval, x, y, I, a, b):
 	"""
@@ -122,3 +122,31 @@ def aaa(x, y, degree = None, tol = None, verbose = True):
 				break
 
 	return I, b 	
+
+class AAARationalApproximation(RationalBarycentric):
+	
+	def __init__(self, degree = None, tol = None, verbose = True):
+		self.degree = degree
+		self.tol = tol
+		self.verbose = verbose
+
+	def fit(self, X, y):
+		X = np.array(X)
+		self.y = np.array(y)
+		assert len(X) == len(y), "Length of X and y do not match"
+		self.x = X.flatten()
+		assert len(self.x) == len(y), "AAA only supports scalar-valued inputs"
+
+		self.I, self.b = aaa(self.x, self.y, degree = self.degree, tol = self.tol, verbose = self.verbose)
+
+	def __call__(self, X):
+		x = np.array(X).flatten().reshape(-1,1)
+		assert len(x) == len(X), "X must be a scalar-valued input"
+		return eval_aaa(x, self.x, self.y, self.I, self.b)
+		
+
+class AAALawsonRationalApproximation(RationalBarycentric):
+	pass
+
+
+

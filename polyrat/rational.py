@@ -5,7 +5,6 @@ from .basis import *
 from .polynomial import *
 from .skiter import *
 from .rational_ratio import *
-from .aaa import *
 from copy import deepcopy
 
 
@@ -144,30 +143,6 @@ class RationalBarycentric(RationalFunction):
 		return self.degree
 
 
-class AAARationalApproximation(RationalBarycentric):
-	
-	def __init__(self, degree = None, tol = None, verbose = True):
-		self.degree = degree
-		self.tol = tol
-		self.verbose = verbose
-
-	def fit(self, X, y):
-		X = np.array(X)
-		self.y = np.array(y)
-		assert len(X) == len(y), "Length of X and y do not match"
-		self.x = X.flatten()
-		assert len(self.x) == len(y), "AAA only supports scalar-valued inputs"
-
-		self.I, self.b = aaa(self.x, self.y, degree = self.degree, tol = self.tol, verbose = self.verbose)
-
-	def __call__(self, X):
-		x = np.array(X).flatten().reshape(-1,1)
-		assert len(x) == len(X), "X must be a scalar-valued input"
-		return eval_aaa(x, self.x, self.y, self.I, self.b)
-		
-
-class AAALawsonRationalApproximation(RationalBarycentric):
-	pass
 
 
 
