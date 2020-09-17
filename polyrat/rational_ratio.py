@@ -90,7 +90,7 @@ def _rational_ratio_optimize_pin_2norm_complex(y, P, Q, a0, b0, **kwargs):
 	res = lambda x: _rational_residual_complex(xfun(x), P, Q, y)
 	jac = lambda x: _rational_jacobian_complex(xfun(x), P, Q)[:,mask]
 
-	result = scipy.optimize.least_squares(res, x0.view(float), jac, verbose = 2)
+	result = scipy.optimize.least_squares(res, x0.view(float), jac, **kwargs)
 	x = xfun(result.x)
 	return x[:2*m].view(complex), x[2*m:].view(complex)
 	

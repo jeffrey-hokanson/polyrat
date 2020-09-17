@@ -17,8 +17,8 @@ y = np.abs(X).flatten()
 data += [['abs', X, y]]
 
 # Exponential (NST18: Sec. 6.8)
-M = 8000
-X = -np.logspace(-6, 6, M).reshape(-1,1)
+M = 2000
+X = -np.logspace(-3, 4, M).reshape(-1,1)
 y = np.exp(X.flatten())
 data += [['exp', X, y]]
 
@@ -104,7 +104,6 @@ data += [['beam', X.reshape(-1,1), y]]
 
 # Pick which experiments to run
 data = [d for d in data if d[0] in ['abs', 'beam', 'tan256', 'exp']]
-#data = [d for d in data if d[0] in ['exp']]
 
 # Range of parameters
 mns = [(k,k) for k in range(2, 51, 1)]
