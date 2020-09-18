@@ -23,7 +23,11 @@ def penzl3(X):
 		A2 = np.array([[-1, p2],[-p2,-1]])
 		A3 = np.array([[-1,2*p2], [-2*p2,-1]])
 		A = block_diag(A1, A2, A3, A4)
-		H[i] = c.T @ np.linalg.solve(z*np.eye(1006) - A, b)
+		#H[i] = c.T @ np.linalg.solve(z*np.eye(1006) - A, b)
+		H[i] += c[0:2].T @ np.linalg.solve(z*np.eye(2) - A1, b[0:2])
+		H[i] += c[2:4].T @ np.linalg.solve(z*np.eye(2) - A2, b[2:4])
+		H[i] += c[4:6].T @ np.linalg.solve(z*np.eye(2) - A3, b[4:6])
+		H[i] += c[6:].T @ (1./(z - np.diag(A4))).reshape(-1,1) 
 
 	return H
 
@@ -42,12 +46,34 @@ except FileNotFoundError:
 	scipy.io.savemat('penzl3.dat', {'X':X, 'y':y})
 	
 
-paaa = ParametricAAARationalApproximation()
-paaa.fit(X, y)
+d1 = []
+d2 = []
+d3 = []
+paaa_err = []
+ssk_err = []
 
-num_degree = paaa.num_degree
-denom_degree = paaa.denom_degree
-ssk = SKRationalApproximation(num_degree, denom_degree, refine = False, maxiter = 5)
-ssk.fit(X, y)
+for maxiter in range(7, 15):
+	paaa = ParametricAAARationalApproximation(maxiter = maxiter)
+	paaa.fit(X, y)
+	paaa_err.append(np.linalg.norm(paaa(X) - y))
 
+	num_degree = paaa.num_degree
+	denom_degree = paaa.denom_degree
 
+	d1.append(num_degree[0])
+	d2.append(num_degree[1])
+	d3.append(num_degree[2])
+
+	
+	ssk = SKRationalApproximation(num_degree, denom_degree, refine = False, maxiter = 20)
+	ssk.fit(X, y)
+	ssk_err.append(np.linalg.norm(ssk(X) - y))
+
+	pgf = PGF()
+	pgf.add('d1', d1)
+	pgf.add('d2', d2)
+	pgf.add('d3', d3)
+	pgf.add('paaa_err', paaa_err)
+	pgf.add('ssk_err', ssk_err)
+	pgf.write('data/fig_penzl3.dat')
+	break

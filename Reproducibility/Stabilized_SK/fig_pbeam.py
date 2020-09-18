@@ -29,7 +29,7 @@ for k in [np.argwhere(np.isclose(param, pp)) for pp in [0.2, 0.4, 1.]]:
 Xtrain = X[I,:]
 ytrain = y[I]
 
-paaa = ParametricAAARationalApproximation(tol = 1e-7, maxiter = 6)
+paaa = ParametricAAARationalApproximation(tol = 1e-7, maxiter = 5)
 paaa.fit(Xtrain, ytrain)
 
 num_degree = paaa.num_degree
