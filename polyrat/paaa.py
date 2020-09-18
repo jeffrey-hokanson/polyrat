@@ -4,6 +4,7 @@ r""" Parametric-AAA
 
 from itertools import product
 import numpy as np
+from copy import deepcopy as copy
 import scipy.linalg
 from iterprinter import IterationPrinter
 
@@ -29,7 +30,9 @@ def eval_paaa(Xe, X, y, I, b, basis, order):
 
 	num = np.einsum('ij,j...->i...', C, [bi*yi for bi, yi in zip(b,y[order])] )
 	denom = np.einsum('ij,j...->i...', C, b)
-	return np.einsum('i...,i->i...', num, 1./denom)
+	
+	with np.errstate(divide = 'ignore', invalid = 'ignore'):
+		return np.einsum('i...,i->i...', num, 1./denom)
 
 def paaa(X, y, verbose = True, maxiter = 100, tol = None):
 	r"""
@@ -51,13 +54,13 @@ def paaa(X, y, verbose = True, maxiter = 100, tol = None):
 	if verbose:
 		printer = IterationPrinter(it = '4d', degree = f'{2+3*d:d}s', norm = '20.10e', cond = '10.2e')
 		printer.print_header(it = 'iter', degree = 'degree', norm = 'norm mismatch', cond = 'cond #')
-
+		printer.print_iter(norm = np.linalg.norm(y))
 	# indices of points where we interpolate
 	I = np.zeros(y.shape[0], dtype = np.bool)
 
 	
 	mismatch = np.copy(y)
-
+	best = None
 	for it in range(maxiter):
 		# compute the pointwise-residual
 		residual = np.sum(np.abs(mismatch), axis = tuple(range(1,len(y[0].shape)+1)))
@@ -103,6 +106,14 @@ def paaa(X, y, verbose = True, maxiter = 100, tol = None):
 			cond = None
 	
 		r = eval_paaa(X, X, y, I, b, basis, order)
+		if np.all(np.isfinite(r)):
+			best = (np.copy(I), np.copy(b), copy(basis), copy(order))
+			assert np.all(np.isclose(r[I], y[I])), "Constructed rational approximant failed to correctly interpolate"
+		else:
+			if verbose:
+				print("Encountered nan in evaluation")
+			break
+			
 		mismatch = y - r
 
 		mismatch_norm = np.linalg.norm(mismatch)
@@ -115,7 +126,7 @@ def paaa(X, y, verbose = True, maxiter = 100, tol = None):
 			if verbose: print('terminated due to small mismatch')
 			break
 	
-	return I, b, basis, order
+	return best
 
 
 class ParametricAAARationalApproximation(RationalBarycentric):
