@@ -66,7 +66,14 @@ def save_contour(fname, cs, fmt = 'matlab', simplify = 1e-3, **kwargs):
 			fout.write("%15.15e\t%15.15e\n" % (x,y))
 
 	def write_path_prepared(fout, x_vec, y_vec, z):
-		fout.write("%15.15e\t%15.15e\t%15.15e\n" % (x0,y0,z))
+
+		# Write path
+		for x, y in zip(x_vec, y_vec):
+			fout.write("%15.15e\t%15.15e\t%15.15e\n" % (x,y,z))
+			
+		# Close
+		fout.write("%15.15e\t%15.15e\t%15.15e\n" % (x_vec[0],y_vec[0],z))
+		# empty line as separator
 		fout.write("\t\t\t\n")
 
 	if fmt == 'matlab':
