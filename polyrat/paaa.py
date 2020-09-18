@@ -145,3 +145,8 @@ class ParametricAAARationalApproximation(RationalBarycentric):
 
 	def __call__(self, X):
 		return eval_paaa(X, self.X, self.y, self._I, self._b, self._basis, self._order)
+
+	@property
+	def interpolation_points(self):
+		return np.array(list(product(*self._basis)))
+		
