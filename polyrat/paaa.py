@@ -118,7 +118,7 @@ def paaa(X, y, verbose = True, maxiter = 100, tol = None):
 	return I, b, basis, order
 
 
-class ParametericAAARationalApproximation(RationalBarycentric):
+class ParametricAAARationalApproximation(RationalBarycentric):
 	def __init__(self, tol = None, verbose = True, maxiter = 100):
 		self.tol = None
 		self.verbose = verbose

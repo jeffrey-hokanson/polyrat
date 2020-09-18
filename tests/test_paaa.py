@@ -55,7 +55,7 @@ def test_paaa():
 
 
 	# Test the class interface
-	aaa = ParametericAAARationalApproximation()
+	aaa = ParametricAAARationalApproximation()
 	aaa.fit(X, y)
 	err = np.linalg.norm(aaa(X) - y)
 	print(err)
