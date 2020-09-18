@@ -12,3 +12,6 @@ from .arnoldi import *
 # Rational 
 from .rational import *
 from .vecfit import *
+from .aaa import *
+from .paaa import *
+from .skiter import *
