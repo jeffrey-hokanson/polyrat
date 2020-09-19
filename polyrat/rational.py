@@ -49,15 +49,15 @@ class RationalRatio(RationalFunction):
 
 
 
-	def refine(self, X, y, **kwargs):
-		a, b = rational_ratio_optimize(y, self.P, self.Q, self.a, self.b, norm = self.norm, **kwargs)
+	def refine(self, X, y, norm = 2, verbose = False, **kwargs):
+		a, b = rational_ratio_optimize(y, self.P, self.Q, self.a, self.b, norm = norm, verbose = verbose, **kwargs)
 
 		self.numerator.coef = a
 		self.denominator.coef = b	
 
-		if self.verbose:
-			res_norm = np.linalg.norm( (self.P @ a)/(self.Q @ b) - y, self.norm)
-			print(f"final residual norm {res_norm:21.15e}")
+		#if verbose:
+		#	res_norm = np.linalg.norm( (self.P @ a)/(self.Q @ b) - y, norm)
+		#	print(f"final residual norm {res_norm:21.15e}")
 
 
 class LinearizedRationalApproximation(RationalApproximation, RationalRatio):
@@ -76,7 +76,7 @@ class SKRationalApproximation(RationalApproximation, RationalRatio):
 	
 	"""
 
-	def __init__(self, num_degree, denom_degree, refine = True, norm = 2, 
+	def __init__(self, num_degree, denom_degree, refine = False, norm = 2, 
 		Basis = None, rebase = True, maxiter = 20, verbose = True, xtol = 1e-7):
 
 		RationalApproximation.__init__(self, num_degree, denom_degree)
@@ -122,7 +122,7 @@ class SKRationalApproximation(RationalApproximation, RationalRatio):
 			self.denominator = Polynomial(denom_basis, b)
 		
 		if self._refine:
-			self.refine(X, y)
+			self.refine(X, y, norm = self.norm)
 
 
 
