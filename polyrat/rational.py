@@ -107,7 +107,7 @@ class SKRationalApproximation(RationalApproximation, RationalRatio):
 			self.numerator, self.denominator, self.hist = skfit_rebase(
 				X, y, self.num_degree, self.denom_degree,
 				maxiter = self.maxiter, verbose = self.verbose, norm = self.norm,
-				history = True, xtol = self.xtol
+				history = True, xtol = self.xtol, denom0 = denom0,
 				)
 		else:
 			num_basis = self.Basis(X, self.num_degree)	
@@ -116,7 +116,7 @@ class SKRationalApproximation(RationalApproximation, RationalRatio):
 			Q = denom_basis.basis()
 		
 			a, b, self.hist = skfit(y, P, Q, maxiter = self.maxiter, verbose = self.verbose, norm = self.norm, history = True, 
-				xtol = self.xtol)
+				xtol = self.xtol, denom0 = denom0)
 
 			self.numerator = Polynomial(num_basis, a)
 			self.denominator = Polynomial(denom_basis, b)
