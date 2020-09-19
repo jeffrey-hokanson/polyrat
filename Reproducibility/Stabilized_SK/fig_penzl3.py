@@ -3,7 +3,7 @@ from scipy.linalg import block_diag
 import tqdm
 import scipy.io
 from polyrat import *
-
+from pgf import PGF
 
 
 def penzl3(X):
@@ -65,7 +65,7 @@ for maxiter in range(7, 15):
 	d3.append(num_degree[2])
 
 	
-	ssk = SKRationalApproximation(num_degree, denom_degree, refine = False, maxiter = 20)
+	ssk = SKRationalApproximation(num_degree, denom_degree, refine = False, maxiter = 10)
 	ssk.fit(X, y)
 	ssk_err.append(np.linalg.norm(ssk(X) - y))
 
