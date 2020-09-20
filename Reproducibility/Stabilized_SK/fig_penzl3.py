@@ -50,6 +50,7 @@ d1 = []
 d2 = []
 d3 = []
 paaa_err = []
+lra_err = []
 ssk_err = []
 
 for maxiter in range(7, 15):
@@ -64,6 +65,11 @@ for maxiter in range(7, 15):
 	d2.append(num_degree[1])
 	d3.append(num_degree[2])
 
+
+	lra = LinearizedRationalApproximation(num_degree, denom_degree)
+	lra.fit(X, y)
+	lra_err.append(np.linalg.norm(lra(X) - y))
+	print(f"LRA error {lra_err[-1]:10.5e}")
 	
 	ssk = SKRationalApproximation(num_degree, denom_degree, refine = False, maxiter = 10)
 	ssk.fit(X, y)
@@ -74,6 +80,9 @@ for maxiter in range(7, 15):
 	pgf.add('d2', d2)
 	pgf.add('d3', d3)
 	pgf.add('paaa_err', paaa_err)
+	pgf.add('lra_err', paaa_err)
 	pgf.add('ssk_err', ssk_err)
 	pgf.write('data/fig_penzl3.dat')
-	break
+
+	if num_degree[0]>= 12:
+		break

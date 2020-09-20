@@ -31,7 +31,7 @@ for degree in [6,10, 14, 18]:
 		rat = RationalRatio(p,q)
 		assert np.all(np.isclose(rat(X), p0(X)/q0(X)))
 
-		rat.refine(X, y, verbose = 2)
+		#rat.refine(X, y, verbose = 2)
 		opt_norms.append(np.linalg.norm(rat(X) - y))
 		print(f"Optimization: {opt_norms[-1]:10.3e}")
 
@@ -57,4 +57,5 @@ for degree in [6,10, 14, 18]:
 		pgf = PGF()
 		pgf.add('x', xx)
 		pgf.add('y', yy)
-		pgf.write(f'data/fig_init_{degree:02d}_{name}.dat')
+		if name != 'opt':
+			pgf.write(f'data/fig_init_{degree:02d}_{name}.dat')
