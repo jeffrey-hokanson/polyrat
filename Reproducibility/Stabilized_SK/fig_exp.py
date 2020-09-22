@@ -20,6 +20,8 @@ lra.fit(X, y)
 ssk = SKRationalApproximation(20, 20, refine = False)
 ssk.fit(X, y)
 
+# NB: Can't currently do this with p-AAA as we have no way to separate out the denominator in the current implementation
+
 X = np.linspace(-1.5,1.5,800)
 Y = X.copy()
 X, Y = np.meshgrid(X, Y)

@@ -3,7 +3,7 @@ from scipy.linalg import block_diag
 import tqdm
 import scipy.io
 from polyrat import *
-from pgf import PGF
+from pgf import PGF, save_contour
 
 def penzl2(X):
 	
@@ -53,65 +53,52 @@ except FileNotFoundError:
 	scipy.io.savemat('penzl2.dat', {'X':X, 'y':y, 'Xtest':Xtest, 'ytest':ytest})
 	
 
+
+
+import matplotlib.pyplot as plt
+fig, ax = plt.subplots(3,1)
+
+# P-AAA
+
 paaa = ParametricAAARationalApproximation(maxiter= 9)
 paaa.fit(X, y)
+err = np.abs(paaa(Xtest) - ytest).reshape(300,1000)
 
+cs = ax[0].contourf(Z.imag, S.real, np.log10(err), levels = np.arange(-8,2)) 
+save_contour('data/fig_penzl_contour_paaa.dat', cs, fmt = 'prepared')
 
+Xi = paaa.interpolation_points
+pgf = PGF()
+pgf.add('z', Xi[:,0].imag)
+pgf.add('s', Xi[:,1].real)
+pgf.write('data/fig_penzl_paaa_interp.dat')
+
+# Stabilized SK
 num_degree = paaa.num_degree
 denom_degree = paaa.denom_degree
 ssk = SKRationalApproximation(num_degree, denom_degree, refine = False, maxiter = 20)
 ssk.fit(X, y)
 
-print("error on training set P-AAA", np.linalg.norm(paaa(X) - y))
-print("error on training set S-SK", np.linalg.norm(ssk(X) - y))
-
-import matplotlib.pyplot as plt
-fig, ax = plt.subplots(1, 2)
-
-err = np.abs(paaa(Xtest) - ytest).reshape(300,1000)
-
-pgf = PGF()
-pgf.add('z', np.log10(Xtest[:,0].imag))
-pgf.add('s', Xtest[:,1].real)
-pgf.add('err', np.log10(err.flatten()))
-pgf.write('data/fig_penzl_paaa.dat')
-
-# small
-pgf = PGF()
-pgf.add('z', np.log10(X[:,0].imag))
-pgf.add('s', X[:,1].real)
-pgf.add('err', np.log10(np.abs(paaa(X) - y)+1e-50))
-pgf.write('data/fig_penzl_paaa_small.dat')
-
-
-ax[0].set_yscale('log')
-cs = ax[0].contourf(np.abs(S), np.abs(Z), np.log10(err), levels = np.arange(-8,0))
-
-
-Xi = paaa.interpolation_points
-pgf = PGF()
-pgf.add('z', np.log10(Xi[:,0].imag))
-pgf.add('s', Xi[:,1].real)
-pgf.write('data/fig_penzl_paaa_interp.dat')
-
-ax[0].plot(np.abs(Xi[:,1]), np.abs(Xi[:,0]), 'r.')
-
 err = np.abs(ssk(Xtest) - ytest).reshape(300,1000)
 
-pgf = PGF()
-pgf.add('z', np.log10(Xtest[:,0].imag))
-pgf.add('s', Xtest[:,1].real)
-pgf.add('err', np.log10(err.flatten()))
-pgf.write('data/fig_penzl_ssk.dat')
+cs = ax[1].contourf(Z.imag, S.real, np.log10(err), levels = np.arange(-8,2)) 
+save_contour('data/fig_penzl_contour_ssk.dat', cs, fmt = 'prepared')
 
-pgf = PGF()
-pgf.add('z', np.log10(X[:,0].imag))
-pgf.add('s', X[:,1].real)
-pgf.add('err', np.log10(np.abs(ssk(X) - y)+1e-50))
-pgf.write('data/fig_penzl_ssk_small.dat')
+# Linearized Rat. Approx.
 
-ax[1].set_yscale('log')
-ax[1].contourf(np.abs(S), np.abs(Z), np.log10(err), levels = np.arange(-8,0))
+lra = LinearizedRationalApproximation(num_degree, denom_degree)
+lra.fit(X, y)
+
+err = np.abs(lra(Xtest) - ytest).reshape(300,1000)
+
+print("error on training set LRA", np.linalg.norm(lra(X) - y))
+
+cs = ax[2].contourf(Z.imag, S.real, np.log10(err), levels = np.arange(-8,2)) 
+save_contour('data/fig_penzl_contour_lra.dat', cs, fmt = 'prepared')
+
+ax[0].set_xscale('log')
+ax[1].set_xscale('log')
+ax[2].set_xscale('log')
 fig.colorbar(cs)
 plt.show()
 

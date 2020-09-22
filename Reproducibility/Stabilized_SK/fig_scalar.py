@@ -106,7 +106,7 @@ data += [['beam', X.reshape(-1,1), y]]
 data = [d for d in data if d[0] in ['abs', 'beam', 'tan256', 'exp']]
 
 # Range of parameters
-mns = [(k,k) for k in range(2, 51, 1)]
+mns = [(k,k) for k in range(1, 2, 1)]
 
 for name, X, y in data:
 
