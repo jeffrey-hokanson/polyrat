@@ -18,11 +18,14 @@ test_requires = [
 	'cvxpy',
 ]
 
+setup_requires = [
+	'setuptools_scm',
+]
+
 with open('README.md', 'r') as f:
 	long_description = f.read()
 
 setup(name='polyrat',
-	version = '0.1',
 	url = 'https://github.com/jeffrey-hokanson/PolyRat',
 	description = 'Polynomial and rational function library',
 	long_description = long_description,
@@ -32,5 +35,17 @@ setup(name='polyrat',
 	packages = ['polyrat',],
 	install_requires = install_requires,
 	test_requires = test_requires,
+	setup_requires = setup_requires,
+	use_scm_version = True,
 	python_requires='>=3.6',
+	classifiers = [
+		'Development Status :: 4 - Beta',
+		"Programming Language :: Python :: 3",
+		'Programming Language :: Python :: 3.6',
+		'Programming Language :: Python :: 3.7',
+		'Programming Language :: Python :: 3.8',
+		'License :: OSI Approved :: GNU General Public License v3',
+		'Intended Audience :: Science/Research',
+		'Topic :: Scientific/Engineering :: Mathematics'
+	]
 	)
