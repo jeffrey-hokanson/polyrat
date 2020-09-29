@@ -22,8 +22,14 @@ test_requires = [
 with open('README.md', 'r') as f:
 	long_description = f.read()
 
+ns = {}
+with open('polyrat/version.py') as f:
+	exec(f.read(), ns)
+
+version = ns['__version__']
+
 setup(name='polyrat',
-	version = '0.1.0',
+	version = version,
 	url = 'https://github.com/jeffrey-hokanson/PolyRat',
 	description = 'Polynomial and rational function library',
 	long_description = long_description,
