@@ -13,19 +13,13 @@ script:
 after_success:
 - coveralls
 
-jobs:
-  include:
-  - stage: deploy
-    python: 3.7
-    install: python setup.py install
-	script:
-	after_success: 
-    deploy:
-      distributions: sdist
-      on:
-        branch: master
-        tags: true
-      provider: pypi
-      username: __token__
-      password:
-        secure: dTVQ7zq57JSwEDgrkiE61zrtSWHlYK6Fzt4GtWY1y323cs8D/HPT8kiuB3D+GQyFYwI/6ExDQwZ9iC1jJwVeLQC6Lcu115V0FuRZ2BP5HuuIytCJmgL9IZt4S8SkKwdHec0WMUjHqrRFBS+7xILWwXSGRb6NOLDFs2CAF/9oEwyQxGRav4aSfP1V69BK+Nc7g110/yE7J88o9qoXvpoYAj3Aa++CDxVL2S+qu4hzsmymK8cn8YbV5xqn+AwqCE/jZQpO/hKy1kALv8Pd0GOzInUewNFVbcq/6p/KlJTTORQ7w0a1X0X2rcacJaYKvhKx5Qz7oOj1wrO4OTklsJqVXBpO3/VKuSl1xydLJGUFjyN+GJs3s5jUir0d8Jmrap6yBih3QwPsdCnnnn8ArdjEmmNiUeTB5uPtfIWauGMj9n0csnnVQScbLXCOmyFv7ywQ+9f22NEUdiTpWCgc8vU8l7J5zjDtQdCVgKbRCsLa/WcYoPw1KYC9faxne9JFRncYaawrtKml8qC9qmtN3awlomUCJjozuFV4VzY8EuFTwve66VC6CFty8iRQW7kDcc7oM7GEF6evkgJN6rgAvS4ktq2see0lENMk6xIt617PAQvSz8mvJFSJ9gbZmH2sX/vLMgqi1/ijQaxkRwqZT5tcX2I1ujhAP2VsIRMAdb3rDJ8=
+deploy:
+  provider: pypi
+  distributions: sdist
+  skip_existing: true
+  on:
+    branch: master
+    tags: true
+  username: __token__
+  password:
+    secure: dTVQ7zq57JSwEDgrkiE61zrtSWHlYK6Fzt4GtWY1y323cs8D/HPT8kiuB3D+GQyFYwI/6ExDQwZ9iC1jJwVeLQC6Lcu115V0FuRZ2BP5HuuIytCJmgL9IZt4S8SkKwdHec0WMUjHqrRFBS+7xILWwXSGRb6NOLDFs2CAF/9oEwyQxGRav4aSfP1V69BK+Nc7g110/yE7J88o9qoXvpoYAj3Aa++CDxVL2S+qu4hzsmymK8cn8YbV5xqn+AwqCE/jZQpO/hKy1kALv8Pd0GOzInUewNFVbcq/6p/KlJTTORQ7w0a1X0X2rcacJaYKvhKx5Qz7oOj1wrO4OTklsJqVXBpO3/VKuSl1xydLJGUFjyN+GJs3s5jUir0d8Jmrap6yBih3QwPsdCnnnn8ArdjEmmNiUeTB5uPtfIWauGMj9n0csnnVQScbLXCOmyFv7ywQ+9f22NEUdiTpWCgc8vU8l7J5zjDtQdCVgKbRCsLa/WcYoPw1KYC9faxne9JFRncYaawrtKml8qC9qmtN3awlomUCJjozuFV4VzY8EuFTwve66VC6CFty8iRQW7kDcc7oM7GEF6evkgJN6rgAvS4ktq2see0lENMk6xIt617PAQvSz8mvJFSJ9gbZmH2sX/vLMgqi1/ijQaxkRwqZT5tcX2I1ujhAP2VsIRMAdb3rDJ8=
