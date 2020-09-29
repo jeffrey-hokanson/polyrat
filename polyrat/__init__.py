@@ -1,4 +1,4 @@
-from version import *
+from .version import *
 
 # Utilities
 from .sorted_norm import *
