@@ -3,29 +3,29 @@ import scipy.linalg
 from iterprinter import IterationPrinter
 from .rational import RationalBarycentric
 
-def eval_barcentric(xeval, x, y, I, a, b):
-	"""
-	Parameters
-	----------
-	xeval: np.array
-		Locations to evaluate the function
-	x: np.array
-		input coordinates for fit
-	"""
-
-	with np.errstate(divide='ignore',invalid='ignore'):
-		A = np.hstack([ 1. /(xeval - xi) for xi in zip(x[I])])
-		# For the rows that have a divide by zero error, 
-		# we replace with value corresponding to the limit
-		for row in np.argwhere(~np.all(np.isfinite(A), axis = 1)):
-			A[row] = np.zeros(A.shape[1])
-			A[row, np.argmin(np.abs(xeval[row] - x[I])).flatten()] = 1 
-		
-	num = np.einsum('ij,j...->i...', A, a)
-	denom = np.einsum('ij,j->i', A,b)
-	reval = np.einsum('i...,i->i...', num, 1./denom)
-	
-	return reval	
+#def eval_barcentric(xeval, x, y, I, a, b):
+#	"""
+#	Parameters
+#	----------
+#	xeval: np.array
+#		Locations to evaluate the function
+#	x: np.array
+#		input coordinates for fit
+#	"""
+#
+#	with np.errstate(divide='ignore',invalid='ignore'):
+#		A = np.hstack([ 1. /(xeval - xi) for xi in zip(x[I])])
+#		# For the rows that have a divide by zero error, 
+#		# we replace with value corresponding to the limit
+#		for row in np.argwhere(~np.all(np.isfinite(A), axis = 1)):
+#			A[row] = np.zeros(A.shape[1])
+#			A[row, np.argmin(np.abs(xeval[row] - x[I])).flatten()] = 1 
+#		
+#	num = np.einsum('ij,j...->i...', A, a)
+#	denom = np.einsum('ij,j->i', A,b)
+#	reval = np.einsum('i...,i->i...', num, 1./denom)
+#	
+#	return reval	
 
 
 
