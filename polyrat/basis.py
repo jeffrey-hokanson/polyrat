@@ -14,7 +14,34 @@ from functools import lru_cache
 from .index import *
 
 class PolynomialBasis:
+
+	def basis(self):
+		r""" Alias for vandermonde(X) where X is the points where the basis was initialized
+
+		Returns
+		-------
+		V: np.array (M, N)
+			generalized Vandermonde matrix evaluated using the points the basis was initialized with
+		"""
+		raise NotImplementedError
+	
+		
 	def vandermonde(self, X):
+		r""" Construct the generalized Vandermonde matrix associated with the polynomial basis 
+
+		Parameters
+		----------
+		X: np.array (M, dim)
+			Coordinates at which to evaluate the basis at 
+
+		Returns
+		-------
+		V: np.array (M, N)
+			generalized Vandermonde matrix 
+		"""
+		raise NotImplementedError
+
+	def vandermonde_derivative(self, X):
 		raise NotImplementedError
 
 
@@ -53,8 +80,6 @@ class TensorProductPolynomialBasis(PolynomialBasis):
 		return X*(self._ub[None,:] - self._lb[None,:])/2.0 + (self._ub[None,:] + self._lb[None,:])/2.0
 
 	def vandermonde(self, X):
-		r""" Construct the Vandermonde matrix
-		"""
 		X = self._scale(X)
 		
 		if self.mode == 'total':		 
@@ -68,14 +93,72 @@ class TensorProductPolynomialBasis(PolynomialBasis):
 			for k in range(self.dim):
 				V[:,j] *= V_coordinate[k][:,alpha[k]]
 		return V
-		
+	
+	def vandermonde_derivative(self, X):
+		r""" Construct a column-wise derivative of the generalized Vandermonde matrix
+		"""
+		M, dim = X.shape
+		N = len(self._indices)
+		DV = np.ones((M, N, dim), dtype = X.dtype)
+
+		Y = self._scale(X) 
+
+		if self.mode == 'total':		 
+			V_coordinate = [self._vander(Y[:,k], self.degree) for k in range(self.dim)]
+		elif self.mode == 'max':
+			V_coordinate = [self._vander(Y[:,k], d) for k,d in enumerate(self.degree)]
+
+		for k in range(dim):
+			for j, alpha in enumerate(self._indices):
+				for q in range(self.dim):
+					if q == k:
+						if self.mode == 'total':
+							DV[:,j,k] *= V_coordinate[q][:,0:-1] @ self._Dmat[alpha[q],:] 
+						elif self.mode == 'max':
+							DV[:,j,k] *= V_coordinate[q][:,0:-1] @ self._Dmat[alpha[q],:self.degree[q]]
+					else:
+						DV[:,j,k] *= V_coordinate[q][:,alpha[q]]
+
+			DV[:,:,k] *= self._dscale[k] 			
+
+		return DV	
+		  
+	
 
 	@lru_cache(maxsize = 1)
 	def basis(self):
 		r""" The basis for the input coordinates
 		""" 
 		return self.vandermonde(self.X)
+	
+	@property
+	@lru_cache(maxsize = 1)
+	def _Dmat(self):
+		r""" The matrix specifying the action of the derivative operator in this basis
+		"""
+		if self.mode == 'total':
+			max_degree = self.degree
+		elif self.mode == 'max':
+			max_degree = max(self.degree)
+		Dmat = np.zeros( (max_degree+1, max_degree))
+		I = np.eye(max_degree + 1)
+		for j in range(max_degree + 1):
+			Dmat[j,:] = self._der(I[:,j])
+		return Dmat
 
+
+	@property
+	@lru_cache(maxsize = 1)
+	def _dscale(self):
+		r""" Derivative of the scaling applied to the coordinates
+		"""
+		# As we assume the transformation is linear, we simply compute the finite difference
+		# with a unit step size
+		XX = np.zeros((2, self.dim))
+		XX[1,:] = 1
+		sXX = self._scale(XX)
+		dscale = sXX[1] - sXX[0]
+		return dscale
 
 class MonomialPolynomialBasis(TensorProductPolynomialBasis):
 	def _vander(self, *args, **kwargs):

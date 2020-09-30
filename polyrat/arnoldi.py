@@ -128,6 +128,31 @@ def vandermonde_arnoldi_eval(X, R, indices, mode, weight = None):
 
 	return W
 
+
+def vandermonde_arnoldi_eval_der(X, R, indices, mode, weight = None, V = None):
+	if V is None:
+		V = vandermonde_arnoldi_eval(X, R, indices, mode, weight = weight)
+		
+	M = X.shape[0]
+	N = R.shape[1]
+	n = X.shape[1]
+	DV = np.zeros((M, N, n), dtype = (R[0,0] * X[0,0]).dtype)
+
+	for ell in range(n):
+		index_iterator = enumerate(indices)
+		next(index_iterator)
+		for k, ids in index_iterator:
+			i, j = _update_rule(indices[:k], ids)
+			# Q[:,k] = X[:,i] * Q[:,j] - sum_s Q[:,s] * R[s, k]
+			if i == ell:
+				DV[:,k,ell] = V[:,j] + X[:,i] * DV[:,j,ell] - DV[:,0:k,ell] @ R[0:k,k] 
+			else:
+				DV[:,k,ell] = X[:,i] * DV[:,j,ell] - DV[:,0:k,ell] @ R[0:k,k] 
+			DV[:,k,ell] /= R[k,k]	
+	
+	return DV
+
+
 class ArnoldiPolynomialBasis(PolynomialBasis):
 	r""" A polynomial basis constructed using Vandermonde with Arnoldi
 
@@ -157,6 +182,12 @@ class ArnoldiPolynomialBasis(PolynomialBasis):
 
 	def vandermonde(self, X, weight = None):
 		return vandermonde_arnoldi_eval(X, self._R, self._indices, self.mode, weight = weight)
+
+	def vandermonde_derivative(self, X, weight = None):
+		if np.array_equal(X, self.X):
+			return vandermonde_arnoldi_eval_der(X, self._R, self._indices, self.mode, weight = weight, V = self.Q)
+		else:
+			return vandermonde_arnoldi_eval_der(X, self._R, self._indices, self.mode, weight = weight)
 
 	def roots(self, coef, *args, **kwargs):
 		from .basis import LegendrePolynomialBasis
