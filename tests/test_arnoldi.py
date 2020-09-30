@@ -33,5 +33,23 @@ def test_arnoldi_roots(n):
 	print("error", err)	
 	assert err < 1e-7, "Error too large"
 
+
+def test_arnoldi_vandermonde():
+	dim = 2
+	degree = 3
+	X = np.random.randn(100, dim)
+	arn = ArnoldiPolynomialBasis(X, degree)
+	
+	err = arn.basis() - arn.vandermonde(X)
+	norm_err = np.linalg.norm(err, 'fro')
+	assert norm_err < 1e-10
+	
+	# Note, these are already verified in test_basis -> test_vandermonde_derivative
+	# so the following checks are simply that the pass through access works correctly 
+	arn.vandermonde_derivative(X)
+	arn.vandermonde_derivative(np.random.randn(10, dim))
+
+
+
 if __name__ == '__main__':
 	test_arnoldi_roots(20)

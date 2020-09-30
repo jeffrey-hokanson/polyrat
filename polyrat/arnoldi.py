@@ -185,7 +185,7 @@ class ArnoldiPolynomialBasis(PolynomialBasis):
 
 	def vandermonde_derivative(self, X, weight = None):
 		if np.array_equal(X, self.X):
-			return vandermonde_arnoldi_eval_der(X, self._R, self._indices, self.mode, weight = weight, V = self.Q)
+			return vandermonde_arnoldi_eval_der(X, self._R, self._indices, self.mode, weight = weight, V = self._Q)
 		else:
 			return vandermonde_arnoldi_eval_der(X, self._R, self._indices, self.mode, weight = weight)
 
