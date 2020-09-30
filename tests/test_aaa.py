@@ -1,6 +1,6 @@
 import numpy 
 from polyrat.aaa import *
-
+import pytest
 
 def eval_aaa_slow(xeval, x, y, I, b):
 	reval = []
@@ -56,7 +56,8 @@ def test_eval_aaa():
 
 
 def test_aaa():
-
+	r""" Functionality testing
+	"""
 	M = int(1e2)
 	x = np.linspace(-1,1, M).reshape(-1,1)
 	y = np.abs(x).flatten()
@@ -67,6 +68,25 @@ def test_aaa():
 	I, b = aaa(x, y, degree = 10)
 
 	# Use matrix valued data	
+	Y = np.vstack([y for i in range(5)]).T
+	I, b = aaa(x, Y, degree = 10)
+
+
+@pytest.mark.parametrize("M", [1000])
+@pytest.mark.parametrize("degree", [5, 10, None])
+@pytest.mark.parametrize("tol", [1e-5, 1e-10, None])
+@pytest.mark.parametrize("verbose", [True, False])
+def test_AAARationalApproximation(M,degree, tol, verbose):
+	r""" Integration tests for AAARationalApproximation
+	"""
+	X = np.random.randn(M,1)
+	y = np.abs(X).flatten()
+	
+	aaa = AAARationalApproximation(degree= degree, tol = tol, verbose = verbose)
+	aaa.fit(X, y) 
+
+	res_norm = np.linalg.norm(aaa(X) - y)
+	print(res_norm)	
 
 if __name__ == '__main__':
 	test_eval_aaa()

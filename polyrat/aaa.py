@@ -130,6 +130,9 @@ class AAARationalApproximation(RationalBarycentric):
 		self.tol = tol
 		self.verbose = verbose
 
+		if self.degree is None and self.tol is None:
+			self.tol = 1e-12
+
 	def fit(self, X, y):
 		X = np.array(X)
 		self.y = np.array(y)
