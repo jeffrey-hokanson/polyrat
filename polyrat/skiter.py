@@ -25,8 +25,87 @@ def _minimize_2_norm(A):
 	return VH.T.conj()[:,-1], cond
 
 
-def _minimize_inf_norm(A):
-	raise NotImplementedError
+def _minimize_inf_norm(A, nsamp = 360):
+	r"""
+
+	min_x || A @ x ||_inf s.t. ||x||_2 = 1
+
+	If A is real, then x is real
+
+	"""
+
+	if np.all(np.isreal(A)):
+		return _minimize_inf_norm_real(A)
+	else:
+		return _minimize_inf_norm_complex(A, nsamp = nsamp)
+
+
+def _minimize_inf_norm_real(A):
+	m,n = A.shape
+	A_ub = np.vstack([ 
+		# A @ x - t <= 0
+		np.hstack([A, -np.ones((m,1))]),
+		# -A @ x - t <= 0
+		np.hstack([-A, -np.ones((m,1))]),
+		])
+	b_ub = np.zeros(2*m)
+	
+	c = np.zeros(n + 1)
+	c[-1] = 1.
+	bounds = np.zeros((n+1, 2))
+	bounds[:n,0] = -np.inf
+	bounds[:,1] = np.inf
+	
+	x, cond = _minimize_2_norm(A) 
+	A_eq = np.zeros((1,n+1))
+	A_eq[0,:n] = x.real
+	b_eq = np.ones((1,))
+
+	res = scipy.optimize.linprog(c, A_ub = A_ub, b_ub = b_ub, A_eq = A_eq, b_eq = b_eq, bounds = bounds,
+		options = {'cholesky': False, 'sym_pos':False, 'lstsq': True})
+	x = res.x[:-1]
+	return x/np.linalg.norm(x), cond
+
+def _minimize_inf_norm_complex(A, nsamp = 360):
+	m, n = A.shape
+	A_ub = [
+		# Ar @ xr - Ai @ xi - tr <=0 
+		np.hstack([A.real, -A.imag, -np.ones((m, 1)), np.zeros((m, 1)), np.zeros((m,1)) ]),
+		# Ai @ xr + Ar @ xi - ti <=0 
+		np.hstack([A.real, A.imag, np.zeros((m, 1)), -np.ones((m, 1)), np.zeros((m,1)) ]),
+		# -Ar @ xr + Ai @ xi - tr <=0 
+		np.hstack([-A.real, A.imag, -np.ones((m, 1)), np.zeros((m, 1)), np.zeros((m,1)) ]),
+		# -Ai @ xr - Ar @ xi - ti <=0 
+		np.hstack([-A.real, -A.imag, np.zeros((m, 1)), -np.ones((m, 1)), np.zeros((m,1)) ]),
+		]
+	# constraints on tr + ti
+	th = np.linspace(0, 2*np.pi, nsamp, endpoint = False)
+	A_ub.append(
+		np.hstack( [np.zeros((nsamp, 2*n)), np.cos(th).reshape(-1,1), np.sin(th).reshape(-1,1), -np.ones((nsamp,1))])
+		)
+	A_ub = np.vstack(A_ub)
+
+	b_ub = np.zeros(A_ub.shape[0])
+	
+	c = np.zeros(2*n + 3)
+	c[-1] = 1.
+	
+	bounds = np.zeros((2*n+3, 2))
+	bounds[:2*n,0] = -np.inf
+	bounds[:,1] = np.inf
+
+
+	x, cond = _minimize_2_norm(A) 
+	A_eq = np.hstack([x.real, x.imag, np.zeros(3)]).reshape(1,-1)
+	b_eq = np.ones((1,))
+
+	res = scipy.optimize.linprog(c, A_ub = A_ub, b_ub = b_ub, A_eq = A_eq, b_eq = b_eq, bounds = bounds,
+		options = {'cholesky': False, 'sym_pos':False, 'lstsq': True})
+	
+	x = res.x[:n] + 1j*res.x[n:2*n]
+	
+	return x/np.linalg.norm(x), cond
+
 
 def _minimize_1_norm(A):
 	raise NotImplementedError
@@ -138,6 +217,13 @@ def skfit(y, P, Q, maxiter = 20, verbose = True, history = False, denom0 = None,
 	else:
 		assert len(denom0) == len(y)
 		denom = np.array(denom0)
+	
+	if np.isclose(norm, 2):
+		linearized_solution = _minimize_2_norm
+	elif ~np.isfinite(norm):
+		linearized_solution = _minimize_inf_norm
+	else: 
+		raise NotImplementedError
 
 	if verbose:
 		printer = IterationPrinter(it = '4d', res_norm = '21.15e', delta_fit = '8.2e', cond = '8.2e')
@@ -160,7 +246,8 @@ def skfit(y, P, Q, maxiter = 20, verbose = True, history = False, denom0 = None,
 				np.multiply((1./denom)[:,None], P), 	
 				np.multiply((-y/denom)[:,None], Q)
 			])
-		x, cond = _minimize_2_norm(A)
+
+		x, cond = linearized_solution(A)
 		
 		a = x[:P.shape[1]]
 		b = x[-Q.shape[1]:]
