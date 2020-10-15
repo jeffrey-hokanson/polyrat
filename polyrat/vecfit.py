@@ -41,7 +41,8 @@ def vecfit(X, y, num_degree, denom_degree, verbose = True,
 	"""
 	assert num_degree >= 0 and denom_degree >= 0, "numerator and denominator degrees must be nonnegative integers"
 	assert num_degree + 1 >= denom_degree, "Vector fitting requires denominator degree to be at most one less than numerator degree"
-
+	if isinstance(poles0, str):
+		assert poles0 in ['linearized', 'GS']
 
 	if verbose:
 		printer = IterationPrinter(it = '4d', res = '20.10e', delta = '10.4e', bnorm = '10.4e', cond = '10.4e')
@@ -57,8 +58,6 @@ def vecfit(X, y, num_degree, denom_degree, verbose = True,
 			im_max = np.max(np.abs(X.imag))
 			assert im_max > 0
 			poles = -im_max/100 + 1j*np.linspace(-im_max, im_max, denom_degree)
-		else:
-			raise NotImplementedError 
 	else:
 		assert len(poles0) == denom_degree, "Number of poles must match the degree of the denominator"
 		poles = np.array(poles0)	
