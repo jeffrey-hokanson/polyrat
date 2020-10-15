@@ -1,5 +1,12 @@
 import numpy as np
 
+
+def abs_fun(X):
+	X = np.array(X)
+	assert X.shape[1] == 1, "Must be 1-dimensional input"
+	return np.abs(X).flatten()
+
+
 def penzl(X):
 	r""" A one-parameter SISO transfer function example from Penzl 2006 (Example 3)
 

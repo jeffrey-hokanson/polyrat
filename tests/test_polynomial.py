@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 from polyrat import *
-
+from polyrat.demos import abs_fun
 
 
 @pytest.mark.parametrize("Basis", 
@@ -44,3 +44,28 @@ def test_wilkinson_roots(Basis, n):
 	print("error", err)	
 	assert err < 1e-7, "Error too large"
 
+
+@pytest.mark.parametrize("complex_", [True, False])
+@pytest.mark.parametrize("Basis", [None, LegendrePolynomialBasis, MonomialPolynomialBasis]) 
+@pytest.mark.parametrize("norm", [1, 2, np.inf]) 
+def test_approx(complex_, Basis, norm):
+	if complex_:
+		X = (1+1j)*np.linspace(-1,1, 1000).reshape(-1,1)
+	else:
+		X = np.linspace(-1,1, 1000).reshape(-1,1)
+	
+	y = abs_fun(X)
+	p = PolynomialApproximation(6, Basis = Basis, norm = norm)
+	p.fit(X, y)
+
+	print(np.linalg.norm(p(X) - y, norm)/np.linalg.norm(y, norm))
+
+	# Check quadratic approximation is exact
+	y2 = X.flatten()**2
+	p.fit(X, y2)
+	assert np.all(np.isclose(p(X), y2))	
+
+
+if __name__ == '__main__':
+	test_approx(True, None, 1)
+	 
