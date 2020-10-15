@@ -21,7 +21,7 @@ def test_vecfit():
 
 
 @pytest.mark.parametrize("verbose", [True, False])
-@pytest.mark.parametrize("degree", [(12,12), (14, 12),])
+@pytest.mark.parametrize("degree", [(11,12), (12,12), (14, 12),])
 def test_init(verbose, degree):
 	X = 1j*np.logspace(1, 3, int(2e3)).reshape(-1,1)
 	X = np.vstack([X, X.conj()])
