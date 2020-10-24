@@ -19,8 +19,10 @@ This includes features like
    :maxdepth: 2
    :caption: Contents:
 
-   api
-
+   basis
+   polynomial
+   ratfit
+   references
 
 Indices and tables
 ==================

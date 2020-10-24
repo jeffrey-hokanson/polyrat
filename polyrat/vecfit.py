@@ -2,7 +2,7 @@ import numpy as np
 from copy import deepcopy as copy
 from .aaa import _build_cauchy
 from .arnoldi import ArnoldiPolynomialBasis
-from .skiter import linearized_ratfit
+from .linratfit import linearized_ratfit
 from .polynomial import Polynomial
 from .lagrange import LagrangePolynomialInterpolant
 from .basis import MonomialPolynomialBasis, LegendrePolynomialBasis
@@ -32,6 +32,10 @@ def vecfit(X, y, num_degree, denom_degree, verbose = True,
 
 	Parameters
 	----------
+	X: numpy array  (M, m)
+		Input coordinates
+	y: numpy array (M,*)
+		Output values
 
 	poles0: ['GS', 'linearized', array-like]
 		Specifies how the initial poles are to be selected
@@ -56,7 +60,7 @@ def vecfit(X, y, num_degree, denom_degree, verbose = True,
 		elif poles0 == 'GS':
 			# Generate initial poles as recommened in GS99, Sec. 3.2 (eqns. 9-10)
 			im_max = np.max(np.abs(X.imag))
-			assert im_max > 0
+			assert im_max > 0, "Must have a non-zero imaginary extent to use `poles0='GS'` initialization"
 			poles = -im_max/100 + 1j*np.linspace(-im_max, im_max, denom_degree)
 	else:
 		assert len(poles0) == denom_degree, "Number of poles must match the degree of the denominator"

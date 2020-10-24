@@ -159,47 +159,6 @@ def _minimize_1_norm(A):
 #	return x, s
 		
 
-def linearized_ratfit(X, y, num_degree, denom_degree, Basis = ArnoldiPolynomialBasis, simultaneous = False):
-	r""" This solves the linearized rational approximation problem
-
-	See: AKL+19x
-	"""
-	num_basis = Basis(X, num_degree)
-	denom_basis = Basis(X, denom_degree)
-	P = num_basis.basis()
-	Q = denom_basis.basis()		
-
-	# diag(y) @ Q
-	yQ = np.multiply(y[:,None], Q)
-	
-
-	if simultaneous:
-		A = np.hstack([P, -yQ])
-		x, cond = _minimize_2_norm(A)
-		a = x[:P.shape[1]]
-		b = x[-Q.shape[1]:]
-
-	elif Basis == ArnoldiPolynomialBasis:
-		# In AKL+19x implementation they reduce to a problem only over b
-		# by using the pseudoinverse to implicitly solve for a
-		# (much like in Variable Projection)
-		# In this case the basis P has orthonormal columns, so we have no
-		# need for the pseudoinverse
-		W = P @ (P.conj().T @ yQ) - yQ
-		b, cond = _minimize_2_norm(W)
-		
-		# and then idenify a via the pseudo-inverse
-		a = P.conj().T @ (yQ @ b)
-	else:
-		W = P @ np.linalg.lstsq(P, yQ, rcond = None)[0] - yQ
-		b, cond = _minimize_2_norm(W)
-		a = np.linalg.lstsq(P, yQ @ b, rcond = None)[0]
-
-			
-	numerator = Polynomial(num_basis, a)
-	denominator = Polynomial(denom_basis, b)
-
-	return numerator, denominator
 
 def skfit(y, P, Q, maxiter = 20, verbose = True, history = False, denom0 = None, norm = 2, xtol = 1e-7):
 	r"""

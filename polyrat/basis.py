@@ -3,6 +3,7 @@ r""" Basic polynomial classes
 These classes use the polynomial representations included in numpy
 
 """
+import abc
 
 import numpy as np
 from numpy.polynomial.polynomial import polyvander, polyder, polyroots
@@ -13,8 +14,8 @@ from numpy.polynomial.laguerre import lagvander, lagder, lagroots
 from functools import lru_cache
 from .index import *
 
-class PolynomialBasis:
-
+class PolynomialBasis(abc.ABC):
+	@abc.abstractmethod
 	def basis(self):
 		r""" Alias for vandermonde(X) where X is the points where the basis was initialized
 
@@ -26,6 +27,7 @@ class PolynomialBasis:
 		raise NotImplementedError
 	
 		
+	@abc.abstractmethod
 	def vandermonde(self, X):
 		r""" Construct the generalized Vandermonde matrix associated with the polynomial basis 
 
@@ -41,6 +43,7 @@ class PolynomialBasis:
 		"""
 		raise NotImplementedError
 
+	@abc.abstractmethod
 	def vandermonde_derivative(self, X):
 		raise NotImplementedError
 

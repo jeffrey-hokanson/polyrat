@@ -1,16 +1,28 @@
+import abc
 import numpy as np
 from .basis import *
 from copy import deepcopy
 import scipy.linalg
 import cvxpy as cp
 
+
+
 class Polynomial:
+	r""" Define a polynomial function
+
+	Parameters
+	----------
+	basis: :class:`.Basis`
+		An instantiated instance of a basis
+	coef: numpy array
+		Coefficients corresponding the ordered basis elements.
+	"""
 	def __init__(self, basis, coef):
 		self.basis = deepcopy(basis)
 		self.coef = np.copy(coef)
 
 	def __call__(self, X):
-		return self.basis.vandermonde(X) @ self.coef
+		return self.eval(X)
 
 	def eval(self, X):
 		return self.basis.vandermonde(X) @ self.coef

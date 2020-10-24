@@ -1,3 +1,6 @@
+r""" Code for AAA rational approximation
+"""
+
 import numpy as np
 import scipy.linalg
 from iterprinter import IterationPrinter
@@ -54,11 +57,8 @@ def eval_aaa(xeval, x, y, I, b):
 	return reval	
 
 
-
-
 def _build_cauchy(x,y):
 	return 1./(np.tile(x.reshape(-1,1), (1,len(y))) - np.tile(y.reshape(1,-1), (len(x),1)))
-
 
 def aaa(x, y, degree = None, tol = None, verbose = True):
 	r""" A vector-valued Adaptive Anderson-Antoulas implementation

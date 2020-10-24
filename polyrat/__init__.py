@@ -12,6 +12,7 @@ from .arnoldi import *
 
 # Rational 
 from .rational import *
+from .linratfit import *
 from .vecfit import *
 from .aaa import *
 from .paaa import *

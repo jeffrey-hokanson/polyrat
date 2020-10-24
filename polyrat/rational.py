@@ -1,3 +1,4 @@
+import abc
 import numpy as np
 import scipy.linalg
 import scipy.optimize
@@ -13,13 +14,35 @@ class RationalFunction:
 		return self.eval(X)
 	
 	def eval(self, X):
+		r""" Evaluate the rational function at the given points
+
+		Parameters
+		----------
+		X: array-like (M, dim)
+			Input coordinates to evaluate the rational function
+		"""
 		return self.__call__(X)
 
 class RationalApproximation(RationalFunction):
 	def __init__(self, num_degree, denom_degree):
 		self.num_degree = num_degree
 		self.denom_degree = denom_degree
+	
+	@abc.abstractmethod
+	def fit(self, X, y, weight = None):
+		r""" Construct a rational approximation for the given data
 
+
+		Parameters
+		----------
+		X: array-like (M, dim)
+			Input coordinates to rational approximation
+		y: array-like (M,...)
+			Output values the rational approximation should try to take
+		weight: None
+			Optional weighting for those methods that support it
+		"""
+		raise NotImplementedError
 
 class RationalRatio(RationalFunction):
 	def __init__(self, numerator, denominator):
@@ -50,6 +73,12 @@ class RationalRatio(RationalFunction):
 
 
 	def refine(self, X, y, norm = 2, verbose = False, **kwargs):
+		r""" Refine the rational approximation using optimization
+
+		The result of many algorithms does not yield a rational approximation
+		that satisfies the first order necessary conditions for optimality.
+		Calling this method after calling fit improves the approximation to optimality
+		"""
 		a, b = rational_ratio_optimize(y, self.P, self.Q, self.a, self.b, norm = norm, verbose = verbose, **kwargs)
 
 		self.numerator.coef = a
@@ -59,14 +88,6 @@ class RationalRatio(RationalFunction):
 		#	res_norm = np.linalg.norm( (self.P @ a)/(self.Q @ b) - y, norm)
 		#	print(f"final residual norm {res_norm:21.15e}")
 
-
-class LinearizedRationalApproximation(RationalApproximation, RationalRatio):
-	def __init__(self, num_degree, denom_degree, **kwargs):
-		RationalApproximation.__init__(self, num_degree, denom_degree)
-		self.kwargs = kwargs
-
-	def fit(self, X, y):
-		self.numerator, self.denominator = linearized_ratfit(X, y, self.num_degree, self.denom_degree, **self.kwargs)
 
 class SKRationalApproximation(RationalApproximation, RationalRatio):
 	r"""
@@ -98,7 +119,6 @@ class SKRationalApproximation(RationalApproximation, RationalRatio):
 		self.denominator = None
 
 	def fit(self, X, y, denom0 = None):
-
 		X = np.array(X)
 		y = np.array(y)
 		assert X.shape[0] == y.shape[0], "X and y do not have the same number of rows"
