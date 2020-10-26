@@ -3,7 +3,7 @@
 [![PyPI version](https://badge.fury.io/py/polyrat.svg)](https://badge.fury.io/py/polyrat)
 [![Build Status](https://travis-ci.org/jeffrey-hokanson/polyrat.svg?branch=master)](https://travis-ci.org/jeffrey-hokanson/polyrat)
 [![Coverage Status](https://coveralls.io/repos/github/jeffrey-hokanson/polyrat/badge.svg?branch=master)](https://coveralls.io/github/jeffrey-hokanson/polyrat?branch=master)
-
+[![Documentation Status](https://readthedocs.org/projects/polyrat/badge/?version=latest)](https://polyrat.readthedocs.io/en/latest/?badge=latest)
 
 
 ## Installation
