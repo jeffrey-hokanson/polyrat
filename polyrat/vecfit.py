@@ -69,7 +69,7 @@ def vecfit(X, y, num_degree, denom_degree, verbose = True,
 	# Construct the Vandermonde matrix for the remaining terms
 	if num_degree - denom_degree >= 0:
 		bonus_basis = Basis(X, num_degree - denom_degree)
-		V = bonus_basis.basis()
+		V = bonus_basis.vandermonde_X
 	else:
 		bonus_basis = None
 		V = np.zeros((len(y),0))

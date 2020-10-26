@@ -24,7 +24,7 @@ def test_monomial_total(M, degree, dim, Basis, seed):
 	X = np.random.randn(M, dim)
 	basis = Basis(X, degree)
 
-	V = basis.basis()
+	V = basis.vandermonde_X
 	Q, R = np.linalg.qr(V)
 
 	for idx in total_degree_index(dim, degree):
@@ -61,7 +61,7 @@ def test_monomial_max(M, degree, Basis, seed):
 	X = np.random.randn(M, len(degree))
 	basis = Basis(X, degree)
 
-	V = basis.basis()
+	V = basis.vandermonde_X
 	Q, R = np.linalg.qr(V)
 
 	for idx in max_degree_index(degree):
@@ -106,8 +106,8 @@ def test_subspace_angles_basis(n_grid, degree, dim,  Basis):
 	leg = LegendrePolynomialBasis(X, degree)
 	basis = Basis(X, degree)
 	
-	V1 = leg.basis()
-	V2 = basis.basis()
+	V1 = leg.vandermonde_X
+	V2 = basis.vandermonde_X
 
 	tol = 1e-10
 	# This Laguerre polynomials are not particularly well conditioned

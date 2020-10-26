@@ -31,6 +31,8 @@ release = u'v0.1.1'
 
 # -- General configuration ---------------------------------------------------
 
+#autoclass_content = 'both'
+
 # If your documentation needs a minimal Sphinx version, state it here.
 #
 # needs_sphinx = '1.0'
@@ -184,4 +186,6 @@ epub_exclude_files = ['search.html']
 # -- Options for intersphinx extension ---------------------------------------
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'https://docs.python.org/': None}
+intersphinx_mapping = {'https://docs.python.org/': None, 
+	'numpy': ('http://docs.scipy.org/doc/numpy/', None),
+}

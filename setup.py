@@ -10,6 +10,11 @@ install_requires = [
 	'cvxpy',
 	] 
 
+try:
+	from funtools import cached_property
+except ImportError:
+	install_requires += ['backports.cached-property']
+
 # CVXPY is licensed under the GPL
 # My understanding is that this implies the _tests_ are under a GPL license
 # but the underlying code in polyrat is still able to be under a more permissive license

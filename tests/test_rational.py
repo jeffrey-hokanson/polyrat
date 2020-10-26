@@ -36,8 +36,8 @@ def test_skfit_exact(M, dim, num_degree, denom_degree, refine, norm, Basis, seed
 		if len(denom_degree) != dim: return
 
 	# Generate exact fit
-	P = LegendrePolynomialBasis(X, num_degree).basis()
-	Q = LegendrePolynomialBasis(X, denom_degree).basis()
+	P = LegendrePolynomialBasis(X, num_degree).vandermonde_X
+	Q = LegendrePolynomialBasis(X, denom_degree).vandermonde_X
 
 	# coefficients
 	a = np.random.randn(P.shape[1])

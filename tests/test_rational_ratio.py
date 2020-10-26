@@ -72,8 +72,8 @@ def test_rational_jacobian(M, dim, num_degree, denom_degree, complex_, seed):
 	
 	X, y = random_data(M, dim, complex_, seed)
 
-	P = LegendrePolynomialBasis(X, num_degree).basis()
-	Q = LegendrePolynomialBasis(X, denom_degree).basis()
+	P = LegendrePolynomialBasis(X, num_degree).vandermonde_X
+	Q = LegendrePolynomialBasis(X, denom_degree).vandermonde_X
 
 	x0 = np.random.randn(P.shape[1]+Q.shape[1])
 
@@ -99,8 +99,8 @@ def test_rational_residual_squared_abs_complex():
 
 	X, y = random_data(M, dim, complex_ = True, seed = 0)
 
-	P = LegendrePolynomialBasis(X, num_degree).basis()
-	Q = LegendrePolynomialBasis(X, denom_degree).basis()
+	P = LegendrePolynomialBasis(X, num_degree).vandermonde_X
+	Q = LegendrePolynomialBasis(X, denom_degree).vandermonde_X
 
 	x = np.random.randn(2*(P.shape[1]+Q.shape[1]))
 

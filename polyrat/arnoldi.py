@@ -156,28 +156,14 @@ def vandermonde_arnoldi_eval_der(X, R, indices, mode, weight = None, V = None):
 class ArnoldiPolynomialBasis(PolynomialBasis):
 	r""" A polynomial basis constructed using Vandermonde with Arnoldi
 
-	Parameters
-	----------
-	X: array-like (M,m)
-		Input coordinates
-	degree: int or list of ints
-		Polynomial degree.  If an int, a total degree polynomial is constructed;
-		if a list, the list must be length m and a maximum degree polynomial is
-		constructed.
 	"""
 	def __init__(self, X, degree, weight = None):
-		self.X = np.copy(np.atleast_2d(X))
-		self.dim = self.X.shape[1]
-		try:
-			self.degree = int(degree)
-			self.mode = 'total'
-		except (TypeError, ValueError):
-			self.degree = np.copy(degree).astype(np.int)
-			self.mode = 'max'
-	
+		PolynomialBasis.__init__(self, X, degree)
 		self._Q, self._R, self._indices = vandermonde_arnoldi_CGS(self.X, self.degree, weight = weight)
-		
-	def basis(self):
+		self._Q.flags.writeable = False	
+	
+	@property
+	def vandermonde_X(self):
 		return self._Q   
 
 	def vandermonde(self, X, weight = None):
@@ -192,7 +178,7 @@ class ArnoldiPolynomialBasis(PolynomialBasis):
 	def roots(self, coef, *args, **kwargs):
 		from .basis import LegendrePolynomialBasis
 		from .polynomial import PolynomialApproximation
-		y = self.basis() @ coef
+		y = self.vandermonde_X @ coef
 		poly = PolynomialApproximation(self.degree, Basis = LegendrePolynomialBasis)
 		poly.fit(self.X, y)
 		roots = poly.roots()

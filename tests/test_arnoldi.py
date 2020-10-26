@@ -40,7 +40,7 @@ def test_arnoldi_vandermonde():
 	X = np.random.randn(100, dim)
 	arn = ArnoldiPolynomialBasis(X, degree)
 	
-	err = arn.basis() - arn.vandermonde(X)
+	err = arn.vandermonde_X - arn.vandermonde(X)
 	norm_err = np.linalg.norm(err, 'fro')
 	assert norm_err < 1e-10
 	

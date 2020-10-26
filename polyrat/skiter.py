@@ -291,8 +291,8 @@ def skfit_rebase(X, y, num_degree, denom_degree, maxiter = 20, verbose = True,
 		try:
 			num_basis = ArnoldiPolynomialBasis(X, num_degree, weight = 1./denom)
 			denom_basis = ArnoldiPolynomialBasis(X, denom_degree, weight = 1./denom)
-			P = num_basis.basis()
-			Q = denom_basis.basis()	
+			P = num_basis.vandermonde_X
+			Q = denom_basis.vandermonde_X
 			#P, RP, _ = vandermonde_arnoldi_CGS(X, num_degree, weight = 1./denom)	
 			#Q, RQ, _ = vandermonde_arnoldi_CGS(X, denom_degree, weight = 1./denom)	
 			

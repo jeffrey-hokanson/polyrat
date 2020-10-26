@@ -4,6 +4,11 @@ from scipy.linalg import eig, eigvals, hessenberg
 from .basis import PolynomialBasis
 from .polynomial import Polynomial
 
+try:
+	from funtools import cached_property
+except ImportError:
+	from backports.cached_property import cached_property
+
 
 def lagrange_roots(nodes, weights, coef, deflation = True):
 	r""" Compute the roots of a Lagrange polynomial
@@ -140,8 +145,16 @@ class LagrangePolynomialBasis(PolynomialBasis):
 			np.prod(self.nodes[k] - self.nodes[0:k]) * np.prod(self.nodes[k] - self.nodes[k+1:]) for k in range(len(self.nodes))
 			])
 
+
+	@cached_property
+	def vandermonde_X(self):
+		return np.eye(len(nodes))
+
 	def vandermonde(self, X):
 		return lagrange_vandermonde(self.nodes, self.weights, X)
+
+	def vandermonde_derivative(self, X):
+		raise NotImplementedError
 	
 	def roots(self, coef, deflation = True):
 		r"""

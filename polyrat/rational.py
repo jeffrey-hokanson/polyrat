@@ -51,11 +51,11 @@ class RationalRatio(RationalFunction):
 
 	@property
 	def P(self):
-		return self.numerator.basis.basis()
+		return self.numerator.basis.vandermonde_X
 
 	@property
 	def Q(self):
-		return self.denominator.basis.basis()
+		return self.denominator.basis.vandermonde_X
 
 	@property
 	def a(self):
@@ -132,8 +132,8 @@ class SKRationalApproximation(RationalApproximation, RationalRatio):
 		else:
 			num_basis = self.Basis(X, self.num_degree)	
 			denom_basis = self.Basis(X, self.denom_degree)	
-			P = num_basis.basis()
-			Q = denom_basis.basis()
+			P = num_basis.vandermonde_X
+			Q = denom_basis.vandermonde_X
 		
 			a, b, self.hist = skfit(y, P, Q, maxiter = self.maxiter, verbose = self.verbose, norm = self.norm, history = True, 
 				xtol = self.xtol, denom0 = denom0)

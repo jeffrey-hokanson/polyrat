@@ -57,7 +57,7 @@ class PolynomialApproximation(Polynomial):
 
 	def fit(self, X, y, **kwargs):
 		self.basis = self.Basis(X, self.degree)
-		P = self.basis.basis()
+		P = self.basis.vandermonde_X
 		if self.norm == 2 or self.norm == 2.:
 			self.coef = _polynomial_fit_least_squares(P, y)
 		else:
