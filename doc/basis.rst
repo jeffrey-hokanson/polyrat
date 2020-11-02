@@ -31,14 +31,6 @@ and *maximum degree* polynomial bases:
 			\alpha_i \le m_i.
 
 
-Most bases are initialized using a set of input coordinates :math:`\mathbf x_i`
-and a degree.
-We require the input coordinates to determine a scaling to make the 
-basis well conditioned;
-i.e., for the Legendre polynomial basis
-we perform an affine transformation (which does not alter polynomial basis)
-such that these input coordinates are in the :math:`[-1,1]^m` hypercube.
-
 
 .. note::
 	Although these polynomial bases ideally represent the same quantities,
@@ -53,6 +45,16 @@ such that these input coordinates are in the :math:`[-1,1]^m` hypercube.
 	* if :math:`x_i` is normally distributed with mean :math:`\mu` and standard deviation :math:`\sigma` use :class:`~polyrat.HermitePolynomialBasis`;
 	* if :math:`\mathbf x_i \in \mathbb{C}^d` for :math:`d\ge 2` and degree greater than 10, use :class:`~polyrat.ArnoldiPolynomialBasis`.
 		
+
+
+Most bases are initialized using a set of input coordinates :math:`\mathbf x_i`
+and a degree.
+We require the input coordinates to determine a scaling to make the 
+basis well conditioned;
+i.e., for the Legendre polynomial basis
+we perform an affine transformation (which does not alter polynomial basis)
+such that these input coordinates are in the :math:`[-1,1]^m` hypercube.
+
 
 
 .. autoclass:: polyrat.PolynomialBasis
