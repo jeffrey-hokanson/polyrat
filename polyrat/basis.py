@@ -379,6 +379,20 @@ class MonomialPolynomialBasis(TensorProductPolynomialBasis):
 		return polyder(*args, **kwargs)
 	def roots(self, *args, **kwargs):
 		return self._inv_scale(polyroots(*args, **kwargs))
+	
+
+class PositiveMonomialPolynomialBasis(MonomialPolynomialBasis):
+	r"""A monomial scaled so the Vandermonde matrix has nonnegative entries
+
+	This is identical to the standard MonomialPolynomialBasis except
+	instead of being scaled to [-1,1], values are scaled to [0,1].
+	This yields a vandermonde_X with entries in [0,1]
+	"""
+	def _scale(self, X):
+		return (X-self._lb[None,:])/(self._ub[None,:] - self._lb[None,:]) 
+
+	def _inv_scale(self, X):
+		return X*(self._ub[None,:] - self._lb[None,:]) + self._lb[None,:]
 
 
 class LegendrePolynomialBasis(TensorProductPolynomialBasis):
