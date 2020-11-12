@@ -14,6 +14,7 @@ from .arnoldi import *
 from .rational import *
 from .linratfit import *
 from .vecfit import *
+from .vecfit_rank import *
 from .aaa import *
 from .paaa import *
 from .skiter import *
