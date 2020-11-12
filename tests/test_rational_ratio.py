@@ -19,7 +19,7 @@ def test_rational_jacobian_real_arnoldi():
 	num_degree = 20
 	denom_degree = 20
 
-	sk = SKRationalApproximation(num_degree, denom_degree, refine = False, maxiter = 5)
+	sk = StabilizedSKRationalApproximation(num_degree, denom_degree, maxiter = 5)
 	sk.fit(X, y)
 	
 	P = sk.P
@@ -43,7 +43,7 @@ def test_rational_jacobian_complex_arnoldi():
 	num_degree = 20
 	denom_degree = 20
 
-	sk = SKRationalApproximation(num_degree, denom_degree, refine = False, maxiter = 5)
+	sk = StabilizedSKRationalApproximation(num_degree, denom_degree, maxiter = 5)
 	sk.fit(X, y)
 	
 	P = sk.P
@@ -123,7 +123,7 @@ def test_rational_ratio_inf_complex():
 	#X, y = random_data(M, dim, complex_, seed)
 	X, y = absolute_value(M, complex_)
 
-	sk = SKRationalApproximation(num_degree, denom_degree, refine = False, maxiter = 5, rebase= True)
+	sk = StabilizedSKRationalApproximation(num_degree, denom_degree, maxiter = 5)
 	sk.fit(X, y)
 	print(sk.a)
 	print(sk.b)
