@@ -4,6 +4,27 @@ from .test_data import *
 import pytest
 
 
+@pytest.mark.parametrize("Basis",
+	[MonomialPolynomialBasis,
+	 LegendrePolynomialBasis,
+	 ChebyshevPolynomialBasis,
+	 HermitePolynomialBasis, 
+	 LaguerrePolynomialBasis,
+	 ArnoldiPolynomialBasis])
+
+def test_rational_ratio(Basis):
+	seed = 0
+	X, y1 = random_data(1000, 2, complex_ = False, seed = seed)
+	y2 = np.random.randn(*y1.shape)	
+	
+	p = PolynomialApproximation(5, Basis)
+	p.fit(X, y1)
+	q = PolynomialApproximation(6, Basis)
+	q.fit(X, y2)
+
+	rat = RationalRatio(p, q)
+	
+	
 
 if __name__ == '__main__':
 	pass

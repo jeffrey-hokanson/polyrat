@@ -8,7 +8,9 @@ from .rational_ratio import *
 from copy import deepcopy
 
 
-class RationalFunction:
+class RationalFunction(abc.ABC):
+	r"""An abstract base class for rational functions
+	"""
 	def __call__(self, X):
 		return self.eval(X)
 	
@@ -44,6 +46,8 @@ class RationalApproximation(RationalFunction):
 		raise NotImplementedError
 
 class RationalRatio(RationalFunction):
+	r"""A rational function as a ratio of two polynomials
+	"""
 	def __init__(self, numerator, denominator):
 		self.numerator = deepcopy(numerator)
 		self.denominator = deepcopy(denominator)
