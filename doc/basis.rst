@@ -128,9 +128,18 @@ Arnoldi Polynomial Basis
 .. autoclass:: polyrat.ArnoldiPolynomialBasis
 
 
+For low-level access, the following functions are available. 
+
+.. autofunction:: polyrat.vandermonde_arnoldi_CGS 
+
+.. autofunction:: polyrat.vandermonde_arnoldi_eval
+
+.. autofunction:: polyrat.vandermonde_arnoldi_eval_der
 
 
 Lagrange Polynomial Basis
 =========================
 
 .. autoclass:: polyrat.LagrangePolynomialBasis
+
+.. autofunction:: polyrat.lagrange_roots
