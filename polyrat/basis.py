@@ -91,8 +91,7 @@ class PolynomialBasis(abc.ABC):
 		V: :class:`~numpy:numpy.ndarray`
 			generalized Vandermonde matrix of dimensions (M, N) evaluated using the points the basis was initialized with
 		"""
-		raise NotImplementedError
-	
+		pass	
 		
 	@abc.abstractmethod
 	def vandermonde(self, X):
@@ -114,7 +113,7 @@ class PolynomialBasis(abc.ABC):
 		V: :class:`~numpy:numpy.ndarray`
 			generalized Vandermonde matrix; of dimensions (M, N) 
 		"""
-		raise NotImplementedError
+		pass
 
 	@abc.abstractmethod
 	def vandermonde_derivative(self, X):
@@ -138,7 +137,7 @@ class PolynomialBasis(abc.ABC):
 		DV: :class:`~numpy:numpy.ndarray`
 			slice-wise derivative of generalized Vandermonde matrix; of dimensions (M, N, dim) 
 		"""
-		raise NotImplementedError
+		pass
 
 	@abc.abstractmethod
 	def roots(self, coef):
@@ -156,8 +155,7 @@ class PolynomialBasis(abc.ABC):
 		coef: array-like, (N,)
 			Coefficients :math:`c_j`
 		"""
-		raise NotImplementedError
-
+		pass
 
 class TensorProductPolynomialBasis(PolynomialBasis):
 	r"""Abstract base class for polynomial bases constructed from univariate bases
@@ -185,7 +183,7 @@ class TensorProductPolynomialBasis(PolynomialBasis):
 		V: :class:`~numpy:numpy.ndarray`
 			Array of shape (len(X), degree+1).
 		"""
-		raise NotImplementedError
+		pass
 
 
 	@abc.abstractmethod
@@ -205,8 +203,7 @@ class TensorProductPolynomialBasis(PolynomialBasis):
 		der: :class:`~numpy:numpy.ndarray`
 			Coefficients of deriative polynomial
 		"""
-		raise NotImplementedError
-
+		pass
 
 	@abc.abstractmethod
 	def roots(self, coef):
@@ -231,7 +228,7 @@ class TensorProductPolynomialBasis(PolynomialBasis):
 		Although computing the roots is more a property of a polynomial, 
 		and not a basis, how we compute these roots depends strongly on the choice of basis.
 		"""
-		raise NotImplementedError
+		pass
 
 
 	def _set_scale(self):
