@@ -13,8 +13,9 @@ except ImportError:
 def lagrange_roots(nodes, weights, coef, deflation = True):
 	r""" Compute the roots of a Lagrange polynomial
 
-	This implements the deflation algorithm from LC14
-
+	This implements the deflation algorithm from [LC14]_
+	to compute the roots of a Lagrange polynomial 
+	without changing basis and to high accuraccy.
 
 
 	Parameters
@@ -22,10 +23,22 @@ def lagrange_roots(nodes, weights, coef, deflation = True):
 	nodes: numpy.array (n,)
 		Nodes :math:`x_j` where the polynomial value is defined.
 	weights: numpy.array (n,)
-		The barycentric weights :math:`prod_{k\ne j} (x_j - x_k)^{-1}`
+		The barycentric weights :math:`\prod_{k\ne j} (\xi_j - \xi_k)^{-1}`
 	coef: numpy.array (n,)
-		The coeffients :math:`c_j` defining the value of the polynomial at each point;
-		i.e., :math:`p(x_j) = c_j`.
+		The coeffients :math:`f_j` defining the value of the polynomial at each point;
+		i.e., :math:`p(\xi_j) = f_j`.
+	deflation: bool
+		In the standard formulation to compute these roots
+		we solve a generalized eigenvalue problem (GEP)
+		which has two infinite poles.
+		If True, we explicitly remove these infinite poles
+		by shrinking the matrices;
+		if False we do not.
+	
+	Returns
+	-------
+	roots: :class:`~numpy:numpy.ndarray`
+		Roots of the polynomial.
 	"""
 	n = len(nodes)
 	assert (n == len(weights)) and  (n == len(coef)), "Dimensions of nodes, weights, and coef should be the same"
@@ -131,9 +144,24 @@ def lagrange_vandermonde(nodes, weights, X):
 
 
 class LagrangePolynomialBasis(PolynomialBasis):
-	r""" Constructs a Lagrange polynomial basis in barycentric form
+	r""" Constructs a Lagrange polynomial basis in barycentric form.
 
-	See: BT04
+
+	Here we construct a univariate polynomial in barycentric form
+	as described in [BT04]_:
+	
+	.. math::
+
+		p(x) = \sum_{j=1}^d \frac{ f_j w_j (x - \xi_j)^{-1}}{w_j (x - \xi_j)^{-1}},
+		\quad w_j := \prod_{k\ne j} (\xi_j - \xi_k)^{-1}
+
+	such that :math:`p(\xi_j) = f_j`.
+
+	Parameters
+	----------
+	nodes: array_like
+		List of the nodes :math:`\xi_j` specifying the basis.
+
 	"""
 	def __init__(self, nodes):
 		self.nodes = np.array(nodes).flatten()
@@ -157,8 +185,6 @@ class LagrangePolynomialBasis(PolynomialBasis):
 		raise NotImplementedError
 	
 	def roots(self, coef, deflation = True):
-		r"""
-		"""
 		return lagrange_roots(self.nodes, self.weights, coef, deflation = deflation)
 
 

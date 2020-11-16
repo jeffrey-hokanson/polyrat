@@ -14,7 +14,7 @@ import scipy.linalg
 def _solve_linearized_vecfit(num_basis, denom_basis, y):
 	A = np.hstack([ num_basis, -(denom_basis[:,1:].T * y).T ])
 	b = y
-	x, res, rank, s = scipy.linalg.lstsq(A, b, overwrite_a = True, overwrite_b = True)
+	x, res, rank, s = scipy.linalg.lstsq(A, b, overwrite_a = True, overwrite_b = False)
 	a = x[0:num_basis.shape[1]]
 	b = np.hstack([1, x[num_basis.shape[1]:]])
 	return a, b, s[0]/s[-1]

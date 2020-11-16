@@ -21,6 +21,8 @@ This includes features like
 
    basis
    polynomial
+   polyfit
+   rational
    ratfit
    references
 

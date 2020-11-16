@@ -17,4 +17,5 @@ from .vecfit import *
 from .aaa import *
 from .paaa import *
 from .skiter import *
-
+from .skiter_stabilized import *
+from .pole_residue import *

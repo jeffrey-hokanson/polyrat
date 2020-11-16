@@ -4,12 +4,13 @@ import scipy.linalg
 import scipy.optimize
 from .basis import *
 from .polynomial import *
-from .skiter import *
 from .rational_ratio import *
 from copy import deepcopy
 
 
-class RationalFunction:
+class RationalFunction(abc.ABC):
+	r"""An abstract base class for rational functions
+	"""
 	def __call__(self, X):
 		return self.eval(X)
 	
@@ -45,6 +46,8 @@ class RationalApproximation(RationalFunction):
 		raise NotImplementedError
 
 class RationalRatio(RationalFunction):
+	r"""A rational function as a ratio of two polynomials
+	"""
 	def __init__(self, numerator, denominator):
 		self.numerator = deepcopy(numerator)
 		self.denominator = deepcopy(denominator)
@@ -87,63 +90,6 @@ class RationalRatio(RationalFunction):
 		#if verbose:
 		#	res_norm = np.linalg.norm( (self.P @ a)/(self.Q @ b) - y, norm)
 		#	print(f"final residual norm {res_norm:21.15e}")
-
-
-class SKRationalApproximation(RationalApproximation, RationalRatio):
-	r"""
-
-	Parameters
-	----------
-	
-	"""
-
-	def __init__(self, num_degree, denom_degree, refine = False, norm = 2, 
-		Basis = None, rebase = True, maxiter = 20, verbose = True, xtol = 1e-7):
-
-		RationalApproximation.__init__(self, num_degree, denom_degree)
-		self._refine = refine
-		self.norm = norm
-		self.xtol = float(xtol)
-		#if self.norm != 2:
-		#	raise NotImplementedError
-
-		self.maxiter = int(maxiter)
-		self.verbose = verbose
-		self.rebase = rebase
-		if Basis is None:
-			Basis = LegendrePolynomialBasis
-		
-		self.Basis = Basis
-
-		self.numerator = None
-		self.denominator = None
-
-	def fit(self, X, y, denom0 = None):
-		X = np.array(X)
-		y = np.array(y)
-		assert X.shape[0] == y.shape[0], "X and y do not have the same number of rows"
-
-		if self.rebase:
-			self.numerator, self.denominator, self.hist = skfit_rebase(
-				X, y, self.num_degree, self.denom_degree,
-				maxiter = self.maxiter, verbose = self.verbose, norm = self.norm,
-				history = True, xtol = self.xtol, denom0 = denom0,
-				)
-		else:
-			num_basis = self.Basis(X, self.num_degree)	
-			denom_basis = self.Basis(X, self.denom_degree)	
-			P = num_basis.vandermonde_X
-			Q = denom_basis.vandermonde_X
-		
-			a, b, self.hist = skfit(y, P, Q, maxiter = self.maxiter, verbose = self.verbose, norm = self.norm, history = True, 
-				xtol = self.xtol, denom0 = denom0)
-
-			self.numerator = Polynomial(num_basis, a)
-			self.denominator = Polynomial(denom_basis, b)
-		
-		if self._refine:
-			self.refine(X, y, norm = self.norm)
-
 
 
 
