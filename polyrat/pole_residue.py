@@ -19,27 +19,20 @@ def residual_jacobian_real(x, Y, V, lam, a, d, jacobian = False):
 		return residual
 
 	# Column-wise derivative of the Cauchy matrix	
-	Cp = C**2
-
-	# derivative with respect to lambda
-	#J = [np.kron(a, Cp[:,j]).flatten() for j in range(len(lam))] 
-	#J = np.column_stack(J)
-	#J = [np.kron(a, Cp[:,j]).flatten() for j in range(len(lam))] 
-	#J = np.einsum('ij,j...->i...j', C, a).reshape(-1,len(lam))
 
 	# Derivative with respect to lambda
-	J = [-np.kron(Cp[:,j], a[j]).flatten() for j in range(len(lam))]
-
+	J = [-np.einsum('i,...->i...', C[:,j]**2, a[j]).flatten() for j in range(len(lam))]
+	
 	output_dim = a.shape[1:]
 
 	if len(output_dim) == 0:
 		J += [ -C, -V]
 	else:
 		dim = int(np.prod(output_dim))
-		J += [ -np.kron(C[:,j], e.reshape(*a.shape[1:])).flatten() 
+		J += [ -np.einsum('i,...->i...', C[:,j], e.reshape(output_dim)).flatten() 
 				for j, e in product(range(len(lam)), np.eye(dim))
 			]
-		J += [ -np.kron(V[:,j], e.reshape(*d.shape[1:])).flatten() 
+		J += [ -np.einsum('i,...->i...', V[:,j], e.reshape(output_dim)).flatten() 
 				for j, e in product(range(V.shape[1]), np.eye(dim))
 			]
 	jacobian = np.column_stack(J)
