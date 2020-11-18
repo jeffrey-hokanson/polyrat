@@ -4,7 +4,7 @@ from itertools import product
 
 import numpy as np
 from .aaa import _build_cauchy as build_cauchy
-
+import scipy.optimize
 
 def residual_jacobian_real(x, Y, V, lam, a, d, jacobian = False):
 	r""" This implementation requires all data to be real: x, Y, lam, a, V, d.
@@ -42,11 +42,10 @@ def residual_jacobian_real(x, Y, V, lam, a, d, jacobian = False):
 
 
 
-def pole_residue_real(x, Y, V, lam0, a0, d0):
+def pole_residue_real(x, Y, V, lam0, a0, d0, **kwargs):
 	r"""
 
 	"""	
-
 
 	
 	forward = lambda lam, a, d : np.hstack([lam, a.flatten(), d.flatten()])
@@ -57,4 +56,13 @@ def pole_residue_real(x, Y, V, lam0, a0, d0):
 		)
 
 
+	res = lambda xx: residual_jacobian_real(x, Y, V, *inverse(xx), jacobian = False)
+	jac = lambda xx: residual_jacobian_real(x, Y, V, *inverse(xx), jacobian = True)[1]
 
+	xx0 = forward(lam0, a0, d0)
+	
+	result = scipy.optimize.least_squares(res, xx0, jac, **kwargs)
+
+	lam, a, d = inverse(result.x)
+
+	return lam, a, d	

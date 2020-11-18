@@ -1,10 +1,29 @@
 import numpy as np
 from polyrat import *
 from polyrat.pole_residue import *
-from checkjac import *
+try:
+	from .checkjac import *
+except ImportError:
+	from checkjac import *
 
 import pytest
 
+
+def abs_data(M, output_dim):
+	np.random.seed(0)
+	x = np.linspace(-1,1, M)
+	
+	x0 = np.random.uniform(-0.5, 0.5, size = output_dim) 
+
+	if len(output_dim) == 0:
+		Y = np.abs(x - x0)
+	else:
+		Y = np.zeros((M,*output_dim))
+		for idx in np.ndindex(output_dim):
+			for i in range(M):
+				Y[i,idx] = np.abs(x[i] - x0[idx])
+
+	return x.reshape(-1,1), Y
 
 def slow_residual(x, Y, V, lam, a, c):
 	r = np.copy(Y)
@@ -81,7 +100,46 @@ def test_residual_jacobian_real(output_dim):
 	assert err < 1e-5, "inaccurate Jacobian"
 
 
-if __name__ == '__main__':
-	test_residual_jacobian_real((2,1))
+@pytest.mark.parametrize("output_dim",[
+		(),
+		(1,),
+		(2,),
+		(3,1), 
+		(3,2,1),
+	])
+@pytest.mark.parametrize("r", [ 1,2,4,5])
+@pytest.mark.parametrize("degree", [None, 0, 1,2,])
+def test_pole_residue_real(output_dim, r, degree):
+#	output_dim = (2,)
+#	r = 5
+#	degree = 6
+	M = 100
 
+	X, Y = abs_data(M, output_dim)
+
+	lam0 = np.random.randn(r)
+	a0 = np.random.randn(r, *output_dim)
+	if degree is None:
+		V = np.zeros((M, 0))
+	else:
+		V = LegendrePolynomialBasis(X,degree).vandermonde_X
+
+	d0 = np.random.randn(V.shape[1], *output_dim)
+	lam, a, d = pole_residue_real(X, Y, V, lam0, a0, d0, verbose = 2, max_nfev = 20)	
+
+	# Initial residual
+	r0 = residual_jacobian_real(X, Y, V, lam0, a0, d0, jacobian = False) 
+	r = residual_jacobian_real(X, Y, V, lam, a, d, jacobian = False) 
+
+	r0_norm = np.linalg.norm(r0)
+	r_norm = np.linalg.norm(r)
+
+	print(f"Initial residual {r0_norm:10.5e}")
+	print(f"  Final residual {r_norm:10.5e}")
+	assert r0_norm > r_norm, "Optimization did not improve the solution" 
+
+
+if __name__ == '__main__':
+#	test_residual_jacobian_real((2,1))
+	test_pole_residue_real((1,), 4,3)
 
