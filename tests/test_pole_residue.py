@@ -13,12 +13,16 @@ def slow_residual(x, Y, V, lam, a, c):
 		a = a.reshape(-1,1)
 		c = c.reshape(-1,1)
 
+	if len(
+	inside_shape = r.shape[1:]
+
 	for i in range(Y.shape[0]):
-		for idx in np.ndindex(r.shape[1:]):
+		for idx in np.ndindex(inside_shape):
+			print(i, idx)
 			for j in range(len(lam)):
 				r[i, idx] -= a[j, idx]/(x[i] - lam[j])
 			for j in range(len(c)):
-				r[i,idx] -= V[i,j]*c[j, idx]
+				r[i, idx] -= V[i,j]*c[j, idx]
 
 	return r.flatten()
 
@@ -27,7 +31,7 @@ def slow_residual(x, Y, V, lam, a, c):
 		(),
 		(1,),
 		(2,),
-		(3,2), 
+		(3,1), 
 	])
 def test_residual_jacobian_real(output_dim):
 	np.random.seed(0)
@@ -39,6 +43,8 @@ def test_residual_jacobian_real(output_dim):
 	a = np.random.randn(len(lam), *output_dim)
 	V = np.random.randn(M, 5)
 	c = np.random.randn(V.shape[1], *output_dim)
+	print("a", a.shape)
+	print("c", c.shape)
 
 	r = residual_jacobian_real(x, Y, V, lam, a, c, jacobian = False) 
 	r_true = slow_residual(x, Y, V, lam, a, c)
