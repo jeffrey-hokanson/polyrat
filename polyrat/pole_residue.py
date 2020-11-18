@@ -5,6 +5,7 @@ from itertools import product
 import numpy as np
 from .aaa import _build_cauchy as build_cauchy
 
+
 def residual_jacobian_real(x, Y, V, lam, a, d, jacobian = False):
 	r""" This implementation requires all data to be real: x, Y, lam, a, V, d.
 
@@ -38,3 +39,22 @@ def residual_jacobian_real(x, Y, V, lam, a, d, jacobian = False):
 	jacobian = np.column_stack(J)
 
 	return residual, jacobian
+
+
+
+def pole_residue_real(x, Y, V, lam0, a0, d0):
+	r"""
+
+	"""	
+
+
+	
+	forward = lambda lam, a, d : np.hstack([lam, a.flatten(), d.flatten()])
+	inverse = lambda xx: (
+		xx[:len(lam0)], 
+		xx[len(lam0):(len(lam0)+len(a0.flatten()))].reshape(a0.shape), 
+		xx[(len(lam0)+len(a0.flatten())):].reshape(d0.shape)
+		)
+
+
+
