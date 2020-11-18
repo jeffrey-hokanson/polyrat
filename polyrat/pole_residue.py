@@ -42,11 +42,16 @@ def residual_jacobian_real(x, Y, V, lam, a, d, jacobian = False):
 
 
 
-def pole_residue_real(x, Y, V, lam0, a0, d0, **kwargs):
+def pole_residue_real(x, Y, V, lam0, a0, d0, stable = False, **kwargs):
 	r"""
 
-	"""	
+	
+	Parameters
+	----------
 
+	stable: bool
+		If True, force poles to lie in left half plane; otherwise 
+	"""	
 	
 	forward = lambda lam, a, d : np.hstack([lam, a.flatten(), d.flatten()])
 	inverse = lambda xx: (
@@ -60,8 +65,15 @@ def pole_residue_real(x, Y, V, lam0, a0, d0, **kwargs):
 	jac = lambda xx: residual_jacobian_real(x, Y, V, *inverse(xx), jacobian = True)[1]
 
 	xx0 = forward(lam0, a0, d0)
-	
-	result = scipy.optimize.least_squares(res, xx0, jac, **kwargs)
+
+	if stable:
+		bounds = [
+			forward(-np.inf*np.ones(lam0.shape), -np.inf*np.ones(a0.shape), -np.inf*np.ones(d0.shape)),
+			forward(0*np.ones(lam0.shape), np.inf*np.ones(a0.shape), np.inf*np.ones(d0.shape)),
+			]
+		result = scipy.optimize.least_squares(res, xx0, jac, bounds, **kwargs)
+	else:	
+		result = scipy.optimize.least_squares(res, xx0, jac, **kwargs)
 
 	lam, a, d = inverse(result.x)
 

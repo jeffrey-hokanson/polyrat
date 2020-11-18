@@ -109,7 +109,8 @@ def test_residual_jacobian_real(output_dim):
 	])
 @pytest.mark.parametrize("r", [ 1,2,4,5])
 @pytest.mark.parametrize("degree", [None, 0, 1,2,])
-def test_pole_residue_real(output_dim, r, degree):
+@pytest.mark.parametrize("stable", [True, False])
+def test_pole_residue_real(output_dim, r, degree, stable):
 #	output_dim = (2,)
 #	r = 5
 #	degree = 6
@@ -118,6 +119,10 @@ def test_pole_residue_real(output_dim, r, degree):
 	X, Y = abs_data(M, output_dim)
 
 	lam0 = np.random.randn(r)
+
+	if stable:
+		lam0 = -np.sign(lam0)*lam0
+
 	a0 = np.random.randn(r, *output_dim)
 	if degree is None:
 		V = np.zeros((M, 0))
@@ -125,7 +130,7 @@ def test_pole_residue_real(output_dim, r, degree):
 		V = LegendrePolynomialBasis(X,degree).vandermonde_X
 
 	d0 = np.random.randn(V.shape[1], *output_dim)
-	lam, a, d = pole_residue_real(X, Y, V, lam0, a0, d0, verbose = 2, max_nfev = 20)	
+	lam, a, d = pole_residue_real(X, Y, V, lam0, a0, d0, stable = stable, verbose = 2, max_nfev = 20)	
 
 	# Initial residual
 	r0 = residual_jacobian_real(X, Y, V, lam0, a0, d0, jacobian = False) 
