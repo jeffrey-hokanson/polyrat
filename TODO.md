@@ -2,6 +2,10 @@
 [X] scalar polynomial roots
 
 
+Polynomial Approximation
+------------------------
+[ ] array-valued polynomial approximation
+
 
 Rational Approximation
 ----------------------

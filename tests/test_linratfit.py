@@ -3,6 +3,10 @@ from polyrat import *
 from polyrat.linratfit import _linearized_2norm
 
 
+
+
+
+
 def test_linearized_2norm():
 
 	X = np.random.randn(M, 1)

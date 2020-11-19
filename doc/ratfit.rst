@@ -27,3 +27,12 @@ Sanathanan-Koerner Iteration
 Stabilized Sanathanan-Koerner Iteration
 =======================================
 
+
+
+
+
+Details
+=======
+
+
+.. autoclass:: polyrat.util.LinearizedRatfitOperator

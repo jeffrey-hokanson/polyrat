@@ -11,22 +11,6 @@ from .polynomial import Polynomial
 import scipy.sparse as ss
 from scipy.sparse.linalg import LinearOperator
 
-class _LinearizedRatfit(LinearOperator):
-	r"""Linear operator representing the system 
-
-	"""
-	def __init__(self, P, Q, Y):
-		self.P = P
-		self.Q = Q
-		self.Y = Y
-
-
-
-	def _matmat(self, x):
-		pass
-
-	def _rmatmat(self, y):
-		pass
 
 
 
