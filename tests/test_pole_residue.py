@@ -111,9 +111,6 @@ def test_residual_jacobian_real(output_dim):
 @pytest.mark.parametrize("degree", [None, 0, 1,2,])
 @pytest.mark.parametrize("stable", [True, False])
 def test_pole_residue_real(output_dim, r, degree, stable):
-#	output_dim = (2,)
-#	r = 5
-#	degree = 6
 	M = 100
 
 	X, Y = abs_data(M, output_dim)

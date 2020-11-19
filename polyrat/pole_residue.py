@@ -48,9 +48,32 @@ def pole_residue_real(x, Y, V, lam0, a0, d0, stable = False, **kwargs):
 	
 	Parameters
 	----------
-
+	x: array_like
+		Input data of shape (M, 1)
+	Y: array_like
+		Output data of shape (M,...)
+	V: array_like 
+		Polynomial basis of shape (M, N).
+		Note if there is no polynomial term, this should be an array of size (M,0)
+	lam0: array_like
+		Initial poles of shape (r,)
+	a0: array_like
+		Residues for each of the pole of shape (r, ...)
+	d0: array_like
+		Polynomial coefficients for polynomial terms of shape (N, ...)
 	stable: bool
 		If True, force poles to lie in left half plane; otherwise 
+	**kwargs: dict
+		Additional arguments to be passed to :class:`~scipy:scipy.optimize.least_squares` 
+
+	Returns
+	-------
+	lam: :class:`~numpy:numpy.ndarray`
+		Poles of shape (r,)
+	a: :class:`~numpy:numpy.ndarray`
+		Residues of shape (r, ...)
+	d: :class:`~numpy:numpy.ndarray`
+		Polynomial coefficients of shape (N, ...)
 	"""	
 	
 	forward = lambda lam, a, d : np.hstack([lam, a.flatten(), d.flatten()])
@@ -64,6 +87,7 @@ def pole_residue_real(x, Y, V, lam0, a0, d0, stable = False, **kwargs):
 	res = lambda xx: residual_jacobian_real(x, Y, V, *inverse(xx), jacobian = False)
 	jac = lambda xx: residual_jacobian_real(x, Y, V, *inverse(xx), jacobian = True)[1]
 
+
 	xx0 = forward(lam0, a0, d0)
 
 	if stable:
@@ -71,6 +95,7 @@ def pole_residue_real(x, Y, V, lam0, a0, d0, stable = False, **kwargs):
 			forward(-np.inf*np.ones(lam0.shape), -np.inf*np.ones(a0.shape), -np.inf*np.ones(d0.shape)),
 			forward(0*np.ones(lam0.shape), np.inf*np.ones(a0.shape), np.inf*np.ones(d0.shape)),
 			]
+		
 		result = scipy.optimize.least_squares(res, xx0, jac, bounds, **kwargs)
 	else:	
 		result = scipy.optimize.least_squares(res, xx0, jac, **kwargs)

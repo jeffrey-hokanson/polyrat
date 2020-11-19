@@ -8,11 +8,39 @@ from .skiter import _minimize_2_norm
 from .rational import RationalApproximation, RationalRatio
 from .polynomial import Polynomial
 
+import scipy.sparse as ss
+from scipy.sparse.linalg import LinearOperator
+
+class _LinearizedRatfit(LinearOperator):
+	r"""Linear operator representing the system 
+
+	"""
+	def __init__(self, P, Q, Y):
+		self.P = P
+		self.Q = Q
+		self.Y = Y
+
+
+
+	def _matmat(self, x):
+		pass
+
+	def _rmatmat(self, y):
+		pass
+
+
+
+def _linearized_2norm(P, Q, Y):
+	# TODO: This should implement a LinearOperator
+	pass
+
+
+
 def linearized_ratfit(X, y, num_degree, denom_degree, Basis = ArnoldiPolynomialBasis, simultaneous = False):
 	r"""Construct a rational approximation by multiplying through by the denominator.
 
 	
-	[AKL+19x]_
+	[AKL+20]_
 
 
 	Parameters
