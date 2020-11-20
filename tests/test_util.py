@@ -43,8 +43,9 @@ def test_linearized(output_dim, complex_):
 
 @pytest.mark.parametrize("output_dim",[ (), (1,), (2,), (2,1), (2,2,1)])
 @pytest.mark.parametrize("complex_", [True, False])
-@pytest.mark.parametrize("method", ['dense'])
-def test_minimize_2norm_exact(output_dim, complex_, method):
+@pytest.mark.parametrize("method", ['dense', 'varpro'])
+@pytest.mark.parametrize("Basis", [LegendrePolynomialBasis, ArnoldiPolynomialBasis])
+def test_minimize_2norm_exact(output_dim, complex_, method, Basis):
 	np.random.seed(0)
 	#complex_ = True
 	M = 100
@@ -54,9 +55,9 @@ def test_minimize_2norm_exact(output_dim, complex_, method):
 	else:
 		X = np.random.randn(M, 1)
 
-	num_basis = LegendrePolynomialBasis(X, 4)
+	num_basis = Basis(X, 4)
 	P = num_basis.vandermonde_X
-	denom_basis = LegendrePolynomialBasis(X, 5)
+	denom_basis = Basis(X, 5)
 	Q = denom_basis.vandermonde_X
 
 	a0 = np.random.randn(P.shape[1], *output_dim)
@@ -72,8 +73,16 @@ def test_minimize_2norm_exact(output_dim, complex_, method):
 
 	if method == 'dense':
 		a, b, cond = minimize_2norm_dense(P, Q, Y)
-	else:
+	elif method == 'sparse':
 		a, b, cond = minimize_2norm_sparse(P, Q, Y)
+	elif method == 'varpro':
+		if Basis == ArnoldiPolynomialBasis:	
+			a, b, cond = minimize_2norm_varpro(P, Q, Y, P_orth = True)
+		else:
+			a, b, cond = minimize_2norm_varpro(P, Q, Y, P_orth = False)
+
+	else:
+		raise NotImplementedError
 	
 	print("a", a/b[0])
 	print("a0", a0/b0[0])
@@ -88,10 +97,13 @@ def test_minimize_2norm_exact(output_dim, complex_, method):
 	rat = RationalRatio(num, denom)
 
 	# We should reproduce exactly	
-	err = np.max(np.abs(rat(X) - Y))
-	assert err < 1e-10
+	err_abs= np.max(np.abs(rat(X) - Y))
+	print("Fit error (abs norm)", err_abs)
+	err2 = np.linalg.norm( (rat(X) - Y).flatten(), 2)
+	print("fit error (2 norm)", err2)
+	assert err_abs < 1e-10
 
 if __name__ == '__main__':
-	test_minimize_2norm_exact((2,1), False, 'sparse')
+	test_minimize_2norm_exact((3,2), False, 'dense', LegendrePolynomialBasis)
 	pass
 #	test_linearized()	

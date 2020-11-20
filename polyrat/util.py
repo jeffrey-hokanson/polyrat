@@ -24,6 +24,68 @@ def linearized_ratfit_operator_dense(P, Q, Y):
 	A = np.hstack([A, At])
 	return A
 
+
+def minimize_2norm_dense(P, Q, Y):
+	A = linearized_ratfit_operator_dense(P, Q, Y)
+	U, s, VH = scipy.linalg.svd(A, full_matrices = False, overwrite_a = True)
+		
+	# Condition number of singular vectors, cf. Stewart 01: Eq. 3.16
+	with np.errstate(divide = 'ignore'):
+		cond = s[0]*np.sqrt(2)/(s[-2] - s[-1])
+	
+	x = VH.T.conj()[:,-1]
+	b = x[-Q.shape[1]:]
+	m = P.shape[1]
+	a = np.zeros((m, *Y.shape[1:]), dtype = x.dtype)
+	for j, idx in enumerate(np.ndindex(Y.shape[1:])):
+		a[(slice(m),*idx)] = x[j*m:(j+1)*m]
+	return a, b, cond
+
+def minimize_2norm_varpro(P, Q, Y, P_orth = False):
+	r"""
+	"""
+	M = Y.shape[0]
+	m = P.shape[1]
+	n = Q.shape[1]
+	nout = int(np.prod(Y.shape[1:]))
+	if P_orth:
+		Q_P = P
+	else:
+		Q_P, R_P = np.linalg.qr(P, mode = 'reduced')
+	
+
+	# Form the matrix 
+	# [P P^* - I] diag(y) Q
+	if nout == 1:
+		A = np.multiply(Y.reshape(-1,1), Q)
+		A -= Q_P @ (Q_P.conj().T @ A)
+	else:
+		A = []
+		for idx in np.ndindex(Y.shape[1:]):
+			At = np.multiply(Y[(slice(M),*idx)].reshape(-1,1), Q)
+			print("At", At.shape)
+			A.append(At - Q_P @ (Q_P.conj().T @ At))
+		A = np.vstack(A)	
+	
+	U, s, VH = np.linalg.svd(A)
+
+	# Condition number of singular vectors, cf. Stewart 01: Eq. 3.16
+	with np.errstate(divide = 'ignore'):
+		cond = s[0]*np.sqrt(2)/(s[-2] - s[-1])
+	
+	b = VH.T.conj()[:,-1]
+	a = np.zeros((m, *Y.shape[1:]), dtype = b.dtype)
+	Qb = Q @ b
+	for j, idx in enumerate(np.ndindex(Y.shape[1:])):
+		x = Q_P.conj().T @ (Y[(slice(M),*idx)] * Qb)
+		if P_orth:
+			a[(slice(m),*idx)] = x
+		else:	
+			a[(slice(m),*idx)] = scipy.linalg.solve_triangular(R_P, x)
+
+	return a, b, cond
+
+
 class LinearizedRatfitOperator(LinearOperator):
 	r"""A linear operator in many Sanathanan-Koerner style algorithms for array-valued problems.
 
@@ -81,7 +143,6 @@ class LinearizedRatfitOperator(LinearOperator):
 		self.P = np.array(P)
 		self.Q = np.array(Q)
 		self.Y = np.array(Y)
-		print("Y", self.Y.shape)
 		assert self.Y.shape[0] == self.P.shape[0] == self.Q.shape[0], "Wrong dimensions"
 
 	@property
@@ -144,21 +205,6 @@ class LinearizedRatfitOperator(LinearOperator):
 	def _rmatvec(self, x):
 		return self._rmatmat(x.reshape(-1,1)).flatten()
 
-def minimize_2norm_dense(P, Q, Y):
-	A = linearized_ratfit_operator_dense(P, Q, Y)
-	U, s, VH = scipy.linalg.svd(A, full_matrices = False, overwrite_a = True)
-		
-	# Condition number of singular vectors, cf. Stewart 01: Eq. 3.16
-	with np.errstate(divide = 'ignore'):
-		cond = s[0]*np.sqrt(2)/(s[-2] - s[-1])
-	
-	x = VH.T.conj()[:,-1]
-	b = x[-Q.shape[1]:]
-	m = P.shape[1]
-	a = np.zeros((m, *Y.shape[1:]), dtype = x.dtype)
-	for j, idx in enumerate(np.ndindex(Y.shape[1:])):
-		a[(slice(m),*idx)] = x[j*m:(j+1)*m]
-	return a, b, cond
 
 
 def minimize_2norm_sparse(P, Q, Y):
