@@ -41,8 +41,16 @@ def minimize_2norm_dense(P, Q, Y):
 		a[(slice(m),*idx)] = x[j*m:(j+1)*m]
 	return a, b, cond
 
-def minimize_2norm_varpro(P, Q, Y, P_orth = False):
+def minimize_2norm_varpro(P, Q, Y, P_orth = False, method = 'svd'):
 	r"""
+
+	Parameters
+	----------
+	method: ['svd', 'ls']
+		How to compute the denominator.
+		If 'svd', it uses the singular value decomposition;
+		if 'ls', it pins b[0]=0 and solves the least squares problem.
+			
 	"""
 	M = Y.shape[0]
 	m = P.shape[1]
@@ -63,17 +71,22 @@ def minimize_2norm_varpro(P, Q, Y, P_orth = False):
 		A = []
 		for idx in np.ndindex(Y.shape[1:]):
 			At = np.multiply(Y[(slice(M),*idx)].reshape(-1,1), Q)
-			print("At", At.shape)
 			A.append(At - Q_P @ (Q_P.conj().T @ At))
 		A = np.vstack(A)	
-	
-	U, s, VH = np.linalg.svd(A)
 
-	# Condition number of singular vectors, cf. Stewart 01: Eq. 3.16
-	with np.errstate(divide = 'ignore'):
-		cond = s[0]*np.sqrt(2)/(s[-2] - s[-1])
+	if method == 'svd':
+		U, s, VH = np.linalg.svd(A)
+
+		# Condition number of singular vectors, cf. Stewart 01: Eq. 3.16
+		with np.errstate(divide = 'ignore'):
+			cond = s[0]*np.sqrt(2)/(s[-2] - s[-1])
 	
-	b = VH.T.conj()[:,-1]
+		b = VH.T.conj()[:,-1]
+	else:
+		x, _, _, s = np.linalg.lstsq(A[:,1:], -A[:,0], rcond = None)
+		b = np.hstack([[1], x])
+		cond = s[0]/s[-1]
+
 	a = np.zeros((m, *Y.shape[1:]), dtype = b.dtype)
 	Qb = Q @ b
 	for j, idx in enumerate(np.ndindex(Y.shape[1:])):
