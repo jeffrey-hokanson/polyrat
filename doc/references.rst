@@ -19,3 +19,8 @@ References
 	Stability of rootfinding for barycentric Lagrange interpolants.
 	Numer. Algor. Vol. 65, pp. 447--464 (2014).
 	https://doi.org/10.1007/s11075-013-9770-3
+
+.. [SK63] C. K. Sanathanan and J. Koerner, 
+	*Transfer function synthesis as a ratio of two complex polynomials*,
+	IEEE T. Automat. Contr., 8 (1963), pp. 56–58, 
+	https://doi.org/10.1109/TAC.1963.1105517.

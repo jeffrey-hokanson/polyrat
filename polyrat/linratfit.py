@@ -8,23 +8,47 @@ from .skiter import _minimize_2_norm
 from .rational import RationalApproximation, RationalRatio
 from .polynomial import Polynomial
 
-import scipy.sparse as ss
-from scipy.sparse.linalg import LinearOperator
-
-
-
-
-def _linearized_2norm(P, Q, Y):
-	# TODO: This should implement a LinearOperator
-	pass
-
 
 
 def linearized_ratfit(X, y, num_degree, denom_degree, Basis = ArnoldiPolynomialBasis, simultaneous = False):
 	r"""Construct a rational approximation by multiplying through by the denominator.
 
+
+	Suppose we have polynomial discrete bases :math:`\mathbf{P}` and :math:`\mathbf{Q}`
+	and seek a rational approximation of the form
 	
-	[AKL+20]_
+	.. math::
+
+		\min_{\mathbf{a}, \mathbf{b} \ne \mathbf{0}}
+			\| \mathbf{y} - \textrm{diag}(\mathbf{Q}\mathbf{b})^{-1} \mathbf{P}\mathbf{a}\|_2.
+
+	The linearized approach multiplies through by the denominator to yield the linear least-squares problem
+	
+	.. math::
+
+		\min_{\mathbf{a}, \mathbf{b} \ne \mathbf{0}}
+			\| \textrm{diag}(\mathbf{y})\mathbf{Q} \mathbf{b}  - \mathbf{P}\mathbf{a}\|_2.
+
+	Although this is by no means optimal, 
+	this yields a cheap, non-iterative rational approximation.
+	
+	The origin of this algorithm is unclear;
+	Sanathanan and Koerner [SK63]_ called this approach *old* in 1963.
+	There has been renewed interest in this approach 
+	due to a 2020 paper by Austin et al. [AKL+20]_
+	which proposes this approach with a polynomial basis constructed
+	with Vandermonde with Arnoldi (see :class:`.ArnoldiPolynomialBasis`).
+	Their precise algorithm uses a slight variant of the above,
+	estimating :math:`\mathbf{b}` by a variable projection-like trick:
+	
+	.. math::
+		
+		\min_{\mathbf{b} \ne \mathbf{0}}
+			\| (\mathbf{I} - \mathbf{P}\mathbf{P}^*) \textrm{diag}(\mathbf{y})\mathbf{Q} \mathbf{b} \|_2;\\
+	
+		\mathbf{a} = \mathbf{P}^* \textrm{diag}(\mathbf{y})\mathbf{Q} \mathbf{b}.
+
+	This variant is invoked using by setting `simultaneous=True`.	
 
 
 	Parameters
@@ -50,7 +74,6 @@ def linearized_ratfit(X, y, num_degree, denom_degree, Basis = ArnoldiPolynomialB
 		numerator polynomial 
 	denominator: :class:`.Polynomial`
 		denominator polynomial 
-
 	"""
 	num_basis = Basis(X, num_degree)
 	denom_basis = Basis(X, denom_degree)

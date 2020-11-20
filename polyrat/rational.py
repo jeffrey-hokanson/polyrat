@@ -45,6 +45,7 @@ class RationalApproximation(RationalFunction):
 		"""
 		raise NotImplementedError
 
+
 class RationalRatio(RationalFunction):
 	r"""A rational function as a ratio of two polynomials
 	"""
@@ -71,7 +72,7 @@ class RationalRatio(RationalFunction):
 	def eval(self, X):
 		p = self.numerator(X)
 		q = self.denominator(X)
-		return p/q	
+		return np.multiply(1./q.reshape(-1, *[1 for i in p.shape[1:]]), p)
 
 
 

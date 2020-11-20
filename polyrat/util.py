@@ -1,10 +1,9 @@
 r""" Utilties for Sanathanan-Koerner style iterations
 """
 
-
-
 import numpy as np
-from scipy.sparse.linalg import LinearOperator
+from scipy.sparse.linalg import LinearOperator, svds
+import scipy.linalg
 
 
 def linearized_ratfit_operator_dense(P, Q, Y):
@@ -12,12 +11,13 @@ def linearized_ratfit_operator_dense(P, Q, Y):
 	"""
 	nout = int(np.prod(Y.shape[1:]))
 
+	M = P.shape[0]
 	A = np.kron(np.eye(nout), P)
 	if nout == 1:
 		At = -np.multiply(Y.reshape(-1,1), Q)
 	else:
 		At = np.vstack([
-			-np.multiply(Y[(slice(P.shape[0]),*idx)].reshape(-1,1), Q)
+			-np.multiply(Y[(slice(M),*idx)].reshape(-1,1), Q)
 			for idx in np.ndindex(Y.shape[1:])
 			])
 		
@@ -140,7 +140,57 @@ class LinearizedRatfitOperator(LinearOperator):
 			Z[-n:,:] -= QH @ np.multiply(self.Y[(slice(M),*idx)].conj()[:,np.newaxis], X[j*M:(j+1)*M])
 
 		return Z
+	
+	def _rmatvec(self, x):
+		return self._rmatmat(x.reshape(-1,1)).flatten()
+
+def minimize_2norm_dense(P, Q, Y):
+	A = linearized_ratfit_operator_dense(P, Q, Y)
+	U, s, VH = scipy.linalg.svd(A, full_matrices = False, overwrite_a = True)
+		
+	# Condition number of singular vectors, cf. Stewart 01: Eq. 3.16
+	with np.errstate(divide = 'ignore'):
+		cond = s[0]*np.sqrt(2)/(s[-2] - s[-1])
+	
+	x = VH.T.conj()[:,-1]
+	b = x[-Q.shape[1]:]
+	m = P.shape[1]
+	a = np.zeros((m, *Y.shape[1:]), dtype = x.dtype)
+	for j, idx in enumerate(np.ndindex(Y.shape[1:])):
+		a[(slice(m),*idx)] = x[j*m:(j+1)*m]
+	return a, b, cond
 
 
+def minimize_2norm_sparse(P, Q, Y):
+	A = LinearizedRatfitOperator(P, Q, Y)
+
+	# For unclear reasons, seeking two singular vectors yields inaccurate 
+	# right eigenvectors
+#	if compute_cond:
+#		U, s, VH = svds(A, k = 2, tol = 0, which = 'SM')
+#		sm = np.min(s)
+#		sm1 = np.max(s)
+#		print(VH.T.conj())
+#		x = VH.T.conj()[:,int(np.argmin(s))]
+#		print(x)
+#		
+#		_, s0, _ = svds(A, k = 1, which = 'LM')
+#		# Condition number of singular vectors, cf. Stewart 01: Eq. 3.16
+#		with np.errstate(divide = 'ignore'):
+#			cond = s0*np.sqrt(2)/(sm1 - sm)
+
+	cond = None
+	U, s, VH = svds(A, k=1, tol = 0, which = 'SM')
+	x = VH.T.conj()[:,0]
+	Ax = A @ x
+	print(np.linalg.norm(Ax, 2), s)
+	assert np.isclose(np.linalg.norm(Ax,2), s, atol = 1e-7), "Incorrect estimate of smallest singular value"
+
+	b = x[-Q.shape[1]:]
+	m = P.shape[1]
+	a = np.zeros((m, *Y.shape[1:]), dtype = x.dtype)
+	for j, idx in enumerate(np.ndindex(Y.shape[1:])):
+		a[(slice(m),*idx)] = x[j*m:(j+1)*m]
+	return a, b, cond
 
 
