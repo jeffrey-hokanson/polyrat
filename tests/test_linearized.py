@@ -1,6 +1,10 @@
 import numpy as np
 import pytest
 from polyrat import *
+try:
+	from test_data import array_absolute_value
+except ImportError:
+	from .test_data import array_absolute_value
 
 
 @pytest.mark.parametrize("degree", [(5,5), (10,10), (20,20)])
@@ -22,5 +26,10 @@ def test_linearized_ratfit(degree):
 	
 	assert np.isclose(err1, err2)
 
+
+	
+
 if __name__ == '__main__':
-	test_linearized_ratfit((5,5))
+	#test_linearized_ratfit((5,5))
+	test_array( (2,1) )
+	

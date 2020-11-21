@@ -15,6 +15,24 @@ def absolute_value(M, complex_ = True):
 
 	return X, y
 
+def array_absolute_value(M, output_dim = ()):
+	X = np.linspace(-1,1, M)
+	
+	if len(output_dim) == 0:
+		x0 = 0
+		return X.reshape(-1,1), np.abs(X - x0)
+	else:
+		x0 = np.linspace(-0.5,.5,int(np.prod(output_dim)))
+
+	Y = np.zeros((M, *output_dim))
+
+	for j, idx in enumerate(np.ndindex(output_dim)):
+		Y[(slice(M), *idx)] = np.abs(X - x0[j])
+
+
+	return X.reshape(-1,1), Y
+
+
 def random_data(M, dim, complex_, seed ):
 	np.random.seed(seed)
 	X = np.random.randn(M, dim)

@@ -75,7 +75,7 @@ def minimize_2norm_varpro(P, Q, Y, P_orth = False, method = 'svd'):
 		A = np.vstack(A)	
 
 	if method == 'svd':
-		U, s, VH = np.linalg.svd(A)
+		U, s, VH = np.linalg.svd(A, full_matrices = False)
 
 		# Condition number of singular vectors, cf. Stewart 01: Eq. 3.16
 		with np.errstate(divide = 'ignore'):

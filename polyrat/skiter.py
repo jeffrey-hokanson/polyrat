@@ -8,6 +8,7 @@ from .basis import *
 from .arnoldi import *
 from .polynomial import *
 from .rational import *
+from .util import minimize_2norm_dense, minimize_2norm_varpro 
 from iterprinter import IterationPrinter
 
 
@@ -197,29 +198,42 @@ def skfit(y, P, Q, maxiter = 20, verbose = True, history = False, denom0 = None,
 	best_sol = None	
 	
 	# For comparison with current iterate to determine termination
-	fit_old = np.zeros(y.shape[0], dtype = y.dtype)
+	fit_old = np.zeros(y.shape, dtype = y.dtype)
 
+	nout_dim = len(y.shape[1:])
 	
 	for it in range(maxiter):
-		A = np.hstack([ 
-				np.multiply((1./denom)[:,None], P), 	
-				np.multiply((-y/denom)[:,None], Q)
-			])
+		if np.isclose(norm, 2):
+			dP = np.multiply((1./denom)[:,None], P)
+			dQ = np.multiply((1./denom)[:,None], Q)
 
-		x, cond = linearized_solution(A)
-		
-		a = x[:P.shape[1]]
-		b = x[-Q.shape[1]:]
-		Pa = P @ a
-		Qb = Q @ b
-		fit = Pa/Qb
-		res_norm = np.linalg.norm(y - fit, norm)
+			a, b, cond = minimize_2norm_varpro(dP, dQ, y)
+			
+			Pa = np.einsum('ij,j...->i...', P, a)
+			Qb = Q @ b
+			fit = np.multiply(1./Qb.reshape(-1, *([1,]*nout_dim)), Pa)
+		else:
+			A = np.hstack([ 
+					np.multiply((1./denom)[:,None], P), 	
+					np.multiply((-y/denom)[:,None], Q)
+				])
+
+			x, cond = linearized_solution(A)
+			
+			a = x[:P.shape[1]]
+			b = x[-Q.shape[1]:]
+
+			Pa = P @ a
+			Qb = Q @ b
+			fit = Pa/Qb
+
+		res_norm = np.linalg.norm( (y - fit).flatten(), norm)
 
 		if res_norm < best_res_norm:
 			best_res_norm = res_norm
 			best_sol = [a, b]
 
-		delta_fit = np.linalg.norm(fit - fit_old, norm)		
+		delta_fit = np.linalg.norm( (fit - fit_old).flatten(), norm)		
 		
 		if history:
 			hist.append({'fit': fit, 'cond': cond})

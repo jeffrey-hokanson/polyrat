@@ -97,7 +97,7 @@ def test_skfit_exact(M, dim, num_degree, denom_degree, refine, norm, Basis, seed
 	assert err < 5e-8, "Expected an exact fit"
 
 
-
 if __name__ == '__main__':
 	#test_minimize_inf_norm_complex()	
-	test_skfit_rebase()
+	#test_skfit_rebase()
+	test_array_valued
