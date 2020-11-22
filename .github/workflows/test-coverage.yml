@@ -54,6 +54,7 @@ jobs:
   deploy:
     needs: test
     runs-on: ubuntu-latest
+    steps:
     - name: Build sdist
       run: python setup.py bdist_wheel
     - name: Publish Package
