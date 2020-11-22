@@ -1,7 +1,7 @@
 # This workflow will install Python dependencies, run tests and lint with a variety of Python versions
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
-name: Unit Testing and Coverage for PolyRat
+name: CI
 
 on:
   push:
@@ -50,6 +50,18 @@ jobs:
       uses: AndreMiras/coveralls-python-action@develop
       with:
         parallel-finished: true
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    - name: Build sdist
+      run: python setup.py bdist_wheel
+    - name: Publish Package
+      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+      uses: pypa/gh-action-pypi-publish@master
+      with:
+        user: __token__
+        password: ${{ secrets.pypi_password }}
 
 #    - name: Coveralls Parallel
 #      uses: coverallsapp/github-action@master
