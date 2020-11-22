@@ -41,10 +41,6 @@ jobs:
       with:
         parallel: true
     
-    - name: Build sdist
-      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
-      run: python setup.py sdist
-
   
 # See: https://github.com/AndreMiras/coveralls-python-action
   coveralls_finish:
@@ -57,11 +53,16 @@ jobs:
         parallel-finished: true
 
   deploy:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
     needs: test
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
     - name: Publish Package
-      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
       uses: pypa/gh-action-pypi-publish@master
       with:
         user: __token__
