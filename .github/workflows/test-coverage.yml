@@ -40,7 +40,7 @@ jobs:
       uses: AndreMiras/coveralls-python-action@develop
       with:
         parallel: true
-    
+        debug: true    
   
 # See: https://github.com/AndreMiras/coveralls-python-action
   coveralls_finish:
@@ -51,6 +51,7 @@ jobs:
       uses: AndreMiras/coveralls-python-action@develop
       with:
         parallel-finished: true
+        debug: true    
 
   deploy:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
