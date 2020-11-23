@@ -54,6 +54,11 @@ including:
     > pip install --upgrade polyrat
 
 
+## Documentation
+
+[Full documentation](https://polyrat.readthedocs.io/en/latest/index.html) is hosted on Read the Docs.
+
+
 ## Usage
 
 Using PolyRat follows the general pattern of [scikit-learn](https://scikit-learn.org/stable/).
