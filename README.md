@@ -22,4 +22,5 @@ This repository contains the code to reproduce the figures in the associated pap
 ## Related Projects
 
 * [baryrat](https://github.com/c-f-h/baryrat): Pure python implementation of the AAA algorithm
+* [Block-AAA](https://github.com/nla-group/block_aaa): Matlab implementation of a matrix-valued AAA variant
 
