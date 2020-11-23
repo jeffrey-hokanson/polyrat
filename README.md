@@ -11,6 +11,39 @@
     > pip install --upgrade polyrat
 
 
+## Usage
+
+Using PolyRat follows the general pattern of [scikit-learn](https://scikit-learn.org/stable/).
+For example, to construct a rational approximation of the tangent function
+
+```python
+import numpy as np
+import polyrat
+
+X = np.linspace(-1,1, 1000).reshape(-1,1)		# Input data 🚨 must be 2-dimensional
+y = np.tan(2*np.pi*X.flatten())					# Output data
+
+num_degree, denom_degree = 10, 10				# numerator and denominator degrees 
+rat = polyrat.StabilizedSKRationalApproximation(num_degree, denom_degree)
+rat.fit(X, y)
+```
+
+After constructing this approximation, we can then evaluate 
+the resulting approximation by calling the class-instance
+
+```python
+y_approx = rat(X)		# Evaluate the rational approximation on X
+```
+
+Comparing this to training data, we note
+that this degree-(10,10) approximation is highly accurate 
+<p align="center">
+<img src="tan.png" alt="A rational approximation of the tangent function" height="400" style="display: block; margin: 0 auto" />
+</p>
+
+
+
+
 ## Reproducibility
 
 This repository contains the code to reproduce the figures in the associated papers
@@ -23,4 +56,8 @@ This repository contains the code to reproduce the figures in the associated pap
 
 * [baryrat](https://github.com/c-f-h/baryrat): Pure python implementation of the AAA algorithm
 * [Block-AAA](https://github.com/nla-group/block_aaa): Matlab implementation of a matrix-valued AAA variant
+* [RationalApproximations](https://github.com/billmclean/RationalApproximations): Julia implementation AAA variants
+* [RatRemez](https://github.com/sfilip/ratremez) Rational Remez algorithm (Silviu-Ioan Filip)
+* [BarycentricDC](https://github.com/sfilip/barycentricDC) Barycentric Differential Correction (see [SISC paper](https://doi.org/10.1137/17M1132409))
+
 
