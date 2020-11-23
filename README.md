@@ -17,12 +17,17 @@ A [rational function](https://en.wikipedia.org/wiki/Rational_function) is a rati
 The goal of this library is to construct polynomial and rational approximations
 given a collection of point data consisting of pairs of 
 inputs <img src="https://render.githubusercontent.com/render/math?math=x_j\in \mathbb{C}^d">
-and outputs <img src="https://render.githubusercontent.com/render/math?math=y_j\in \mathbb{C}^D">.
-The goal of this library is to provide algorithms for constructing these approximations
-in a variety of norms, namely [two-norm and sup-norm](https://en.wikipedia.org/wiki/Norm_(mathematics)#p-norm).
+and outputs <img src="https://render.githubusercontent.com/render/math?math=y_j\in \mathbb{C}^D">
+that minimizes (for example)
 
-The polynomial approximation problem is relatively straightfoward
-as it is a convex problem for any p-norm with p≥1.
+<img src="https://render.githubusercontent.com/render/math?math=\displaystyle\min_f \sum_{j=1}^N \|f(x_j) - y_j\|^2_2.">
+
+The ultimate goal of this library is to provide algorithms to construct these approximations
+in a variety of norms with a variety of constraints on the approximants.
+
+
+The **polynomial approximation** problem is relatively straightfoward
+as it is a convex problem for any [p-norm](https://en.wikipedia.org/wiki/Norm_(mathematics)#p-norm) with p≥1.
 However, there is still a need to be careful 
 in the construction of the polynomial basis for high-degree polynomials
 to avoid ill-conditioning.
@@ -32,7 +37,7 @@ Here we provide access to a number of polynomial bases:
 * [Vandermonde with Arnoldi](https://arxiv.org/abs/1911.09988) polynomial basis;
 * [barycentric Lagrange](https://doi.org/10.1137/S0036144502417715) polynomial bases.
 
-The rational approximation problem is still an open research problem.
+The **rational approximation** problem is still an open research problem.
 This library provides a variety of algorithms for constructing rational approximations
 including:
 
