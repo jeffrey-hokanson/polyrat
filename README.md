@@ -5,6 +5,44 @@
 [![Coverage Status](https://coveralls.io/repos/github/jeffrey-hokanson/polyrat/badge.svg?branch=master)](https://coveralls.io/github/jeffrey-hokanson/polyrat?branch=master)
 [![Documentation Status](https://readthedocs.org/projects/polyrat/badge/?version=latest)](https://polyrat.readthedocs.io/en/latest/?badge=latest)
 
+PolyRat is a library for polynomial and rational approximation.
+Formally we can think of [polynomials](https://en.wikipedia.org/wiki/Polynomial#Polynomial_functions) as a sum of powers of <img src="https://render.githubusercontent.com/render/math?math=x">:
+
+<img src="https://render.githubusercontent.com/render/math?math=p(x)=\displaystyle\sum_{k=0}^m a_kx^k.">
+
+A [rational function](https://en.wikipedia.org/wiki/Rational_function) is a ratio of two polynomial functions
+
+<img src="https://render.githubusercontent.com/render/math?math=r(x)=\displaystyle\frac{p(x)}{q(x)}=\frac{\sum_{k=0}^m a_kx^k}{\sum_{k=0}^n b_k x^k}.">
+
+The goal of this library is to construct polynomial and rational approximations
+given a collection of point data consisting of pairs of 
+inputs <img src="https://render.githubusercontent.com/render/math?math=x_j\in \mathbb{C}^d">
+and outputs <img src="https://render.githubusercontent.com/render/math?math=y_j\in \mathbb{C}^D">.
+The goal of this library is to provide algorithms for constructing these approximations
+in a variety of norms, namely [two-norm and sup-norm](https://en.wikipedia.org/wiki/Norm_(mathematics)#p-norm).
+
+The polynomial approximation problem is relatively straightfoward
+as it is a convex problem for any p-norm with p≥1.
+However, there is still a need to be careful 
+in the construction of the polynomial basis for high-degree polynomials
+to avoid ill-conditioning.
+Here we provide access to a number of polynomial bases:
+
+* tensor-product polynomials based on Numpy (e.g., Monomial, Legendre, etc.);
+* [Vandermonde with Arnoldi](https://arxiv.org/abs/1911.09988) polynomial basis;
+* [barycentric Lagrange](https://doi.org/10.1137/S0036144502417715) polynomial bases.
+
+The rational approximation problem is still an open research problem.
+This library provides a variety of algorithms for constructing rational approximations
+including:
+
+* [Adaptive Anderson Antoulas](https://doi.org/10.1137/16M1106122)
+* [Sanathanan Koerner iteration](https://doi.org/10.1109/TAC.1963.1105517)
+* [Stabilized Sanathanan Koerner iteration](https://arxiv.org/abs/2009.10803)
+* [Vector Fitting](https://doi.org/10.1109/61.772353)
+
+
+
 
 ## Installation
 
