@@ -20,19 +20,19 @@ For example, to construct a rational approximation of the tangent function
 import numpy as np
 import polyrat
 
-X = np.linspace(-1,1, 1000).reshape(-1,1)		# Input data 🚨 must be 2-dimensional
-y = np.tan(2*np.pi*X.flatten())					# Output data
+x = np.linspace(-1,1, 1000).reshape(-1,1)  # Input data 🚨 must be 2-dimensional
+y = np.tan(2*np.pi*x.flatten())            # Output data
 
-num_degree, denom_degree = 10, 10				# numerator and denominator degrees 
+num_degree, denom_degree = 10, 10          # numerator and denominator degrees 
 rat = polyrat.StabilizedSKRationalApproximation(num_degree, denom_degree)
-rat.fit(X, y)
+rat.fit(x, y)
 ```
 
 After constructing this approximation, we can then evaluate 
 the resulting approximation by calling the class-instance
 
 ```python
-y_approx = rat(X)		# Evaluate the rational approximation on X
+y_approx = rat(x)		# Evaluate the rational approximation on X
 ```
 
 Comparing this to training data, we note
