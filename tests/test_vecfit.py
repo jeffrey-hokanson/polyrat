@@ -23,15 +23,16 @@ def test_vecfit():
 @pytest.mark.parametrize("verbose", [True, False])
 @pytest.mark.parametrize("degree", [(11,12), (12,12), (14, 12),])
 def test_init(verbose, degree):
+	np.random.seed(0)
 	X = 1j*np.logspace(1, 3, int(2e3)).reshape(-1,1)
 	X = np.vstack([X, X.conj()])
-	y = penzl(X)
+	y = penzl(X).flatten()
 	
 	num_degree = degree[0]
 	denom_degree = degree[1]
 
 	
-	sk = SKRationalApproximation(num_degree, denom_degree)
+	sk = StabilizedSKRationalApproximation(num_degree, denom_degree)
 	sk.fit(X, y)
 	err_sk = np.linalg.norm(sk(X) - y)
 
@@ -40,14 +41,15 @@ def test_init(verbose, degree):
 			poles0 = np.random.randn(denom_degree)
 		else:
 			poles0 = init
+
 		vf = VectorFittingRationalApproximation(num_degree, denom_degree, poles0 = poles0, verbose = verbose)
 
 		vf.fit(X, y)
 		err_vf = np.linalg.norm(vf(X) - y)
-		print(init, 'vf', err_vf, 'sk', err_sk)
+		print('vf w/ init', init, err_vf, 'sk', err_sk)
 		assert np.isclose(err_vf, err_sk, atol = 1e-1, rtol = 1e-1) 	
 
 if __name__ == '__main__':
 	#test_vecfit()
-	test_init(True, (12,12))
+	test_init(True, (11,12))
 

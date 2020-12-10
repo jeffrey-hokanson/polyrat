@@ -12,6 +12,7 @@ except ImportError:
 @pytest.mark.parametrize("RationalApproximation",
 	[LinearizedRationalApproximation,
 	SKRationalApproximation,
+	VectorFittingRationalApproximation,	
 	])
 def test_array_valued(output_dim, RationalApproximation):
 	r""" This mainly checks the functionality with array valued data
