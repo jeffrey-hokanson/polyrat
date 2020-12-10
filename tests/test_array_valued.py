@@ -13,6 +13,7 @@ except ImportError:
 	[LinearizedRationalApproximation,
 	SKRationalApproximation,
 	VectorFittingRationalApproximation,	
+	StabilizedSKRationalApproximation,
 	])
 def test_array_valued(output_dim, RationalApproximation):
 	r""" This mainly checks the functionality with array valued data
@@ -27,4 +28,4 @@ def test_array_valued(output_dim, RationalApproximation):
 	print(np.linalg.norm( (rat(X) - Y).flatten(), 2)/np.linalg.norm(Y.flatten(), 2))
 
 if __name__ == '__main__':
-	test_array_valued((), SKRationalApproximation)
+	test_array_valued((5,), StabilizedSKRationalApproximation)

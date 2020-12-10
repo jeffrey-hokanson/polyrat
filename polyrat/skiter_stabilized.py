@@ -9,6 +9,8 @@ from .skiter import _minimize_2_norm, _minimize_inf_norm
 from .arnoldi import *
 from .rational import *
 
+from .util import minimize_2norm_varpro 
+
 
 
 def skfit_stabilized(X, y, num_degree, denom_degree, maxiter = 20, verbose = True, 
@@ -53,9 +55,10 @@ def skfit_stabilized(X, y, num_degree, denom_degree, maxiter = 20, verbose = Tru
 	# we record the best iteration
 	best_res_norm = np.inf
 	best_sol = None	
+	nout_dim = len(y.shape[1:])
 	
 	# For comparison with current iterate to determine termination
-	fit_old = np.zeros(y.shape[0], dtype = X.dtype)
+	fit_old = np.zeros(y.shape, dtype = X.dtype)
 
 	for it in range(maxiter):
 		try:
@@ -64,20 +67,24 @@ def skfit_stabilized(X, y, num_degree, denom_degree, maxiter = 20, verbose = Tru
 			P = num_basis.vandermonde_X
 			Q = denom_basis.vandermonde_X
 			
-			A = np.hstack([P, np.multiply(-y[:,None], Q) ])
-			x, cond = linearized_solution(A)
-			a = x[:P.shape[1]]
-			b = x[-Q.shape[1]:]
-			
-			Pa = P @ a
+			if False:
+				A = np.hstack([P, np.multiply(-y[:,None], Q) ])
+				x, cond = linearized_solution(A)
+				a = x[:P.shape[1]]
+				b = x[-Q.shape[1]:]
+			else:		
+				a, b, cond = minimize_2norm_varpro(P, Q, y)
+	
+			Pa = np.einsum('ij,j...->i...', P, a)
 			Qb = Q @ b
 
-			fit = Pa/Qb
+			#fit = Pa/Qb
+			fit = np.multiply(1./Qb.reshape(-1, *([1,]*nout_dim)), Pa)
 
 			delta_fit = np.linalg.norm( (fit - fit_old).flatten(), norm)		
 			res_norm = np.linalg.norm( (fit - y).flatten(), norm)
 		
-		except (LinAlgError, ValueError) as e:
+		except (LinAlgError) as e:
 			if verbose: print(e)
 			break
 	
