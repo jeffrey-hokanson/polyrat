@@ -67,13 +67,13 @@ def skfit_stabilized(X, y, num_degree, denom_degree, maxiter = 20, verbose = Tru
 			P = num_basis.vandermonde_X
 			Q = denom_basis.vandermonde_X
 			
-			if False:
+			if np.isclose(norm, 2):
+				a, b, cond = minimize_2norm_varpro(P, Q, y)
+			else:		
 				A = np.hstack([P, np.multiply(-y[:,None], Q) ])
 				x, cond = linearized_solution(A)
 				a = x[:P.shape[1]]
 				b = x[-Q.shape[1]:]
-			else:		
-				a, b, cond = minimize_2norm_varpro(P, Q, y)
 	
 			Pa = np.einsum('ij,j...->i...', P, a)
 			Qb = Q @ b

@@ -5,8 +5,13 @@ from polyrat.rational_ratio import _rational_residual_complex, _rational_jacobia
 from polyrat.rational_ratio import _rational_residual_squared_abs_complex, _rational_jacobian_squared_abs_complex
 from polyrat.rational_ratio import _rational_ratio_inf_complex
 
-from .checkjac import *
-from .test_data import *
+try:
+	from .checkjac import *
+	from .test_data import *
+except ImportError:
+	from checkjac import *
+	from test_data import *
+
 import pytest
 
 
@@ -116,14 +121,16 @@ def test_rational_ratio_inf_complex():
 	dim = 1
 	complex_ = True
 	seed = 0
-	num_degree = 5
-	denom_degree = 5
+	num_degree = 4
+	denom_degree = 4
 	
 	M = 1000
 	#X, y = random_data(M, dim, complex_, seed)
 	X, y = absolute_value(M, complex_)
 
-	sk = StabilizedSKRationalApproximation(num_degree, denom_degree, maxiter = 5)
+	print("y", y.shape)
+
+	sk = StabilizedSKRationalApproximation(num_degree, denom_degree, maxiter = 5, verbose = True)
 	sk.fit(X, y)
 	print(sk.a)
 	print(sk.b)
@@ -131,6 +138,8 @@ def test_rational_ratio_inf_complex():
 	# Compute the error for the SK iteration
 	err_old = np.max(np.abs(sk(X) -y))
 
+	print(sk.a.shape)
+	print(sk.b.shape)
 	a, b = _rational_ratio_inf_complex(y, sk.P, sk.Q, sk.a, sk.b)
 	print(a)
 	print(b)
@@ -144,4 +153,5 @@ def test_rational_ratio_inf_complex():
 
 if __name__ == '__main__':
 	#test_rational_jacobian(1000, 2, 4, 5, True, 0)	
-	test_rational_inf_constraint_complex()
+	#test_rational_inf_constraint_complex()
+	test_rational_ratio_inf_complex()
