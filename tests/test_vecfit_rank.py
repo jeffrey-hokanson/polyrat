@@ -1,10 +1,10 @@
-
-
 import numpy as np
 import polyrat
 from polyrat.aaa import _build_cauchy
 from polyrat.vecfit_rank import (_fit_f, _fit_g, _fit_h, _fit_fh, _fit_gh)
 import cvxpy as cp
+import pytest
+
 
 def generate_test_data(M = 100, r = 10, p = 5, m = 3):
 	z = 1j*np.linspace(-1, 1, M)
@@ -27,10 +27,10 @@ def fit_f(Y, C, g):
 	for i in range(C.shape[0]):
 		for k in range(C.shape[1]):
 			Hr[i] += (f[k:k+1].T @ g[k:k+1].conj())*C[i,k]
-		obj += cp.norm(Y[i] - Hr[i], 'fro')**2
+		obj += cp.sum_squares(Y[i] - Hr[i])
 
 	prob = cp.Problem(cp.Minimize(obj))
-	prob.solve(verbose = True)
+	prob.solve(verbose = True, solver = 'OSQP',eps_abs = 1e-8, eps_rel = 1e-8)
 	return f.value
 
 def fit_g(Y, C, f):
@@ -41,15 +41,19 @@ def fit_g(Y, C, f):
 	for i in range(C.shape[0]):
 		for k in range(C.shape[1]):
 			Hr[i] += (f[k:k+1].T @ cp.conj(g[k:k+1]) )*C[i,k]
-		obj += cp.norm(Y[i] - Hr[i], 'fro')**2
+		obj += cp.sum_squares(Y[i] - Hr[i])
 
 	prob = cp.Problem(cp.Minimize(obj))
-	prob.solve(verbose = True)
+	prob.solve(verbose = True, solver = 'OSQP',eps_abs = 1e-8, eps_rel = 1e-8)
 	return g.value
 	
-def test_fit_f():
+
+@pytest.mark.parametrize("r", [4])
+@pytest.mark.parametrize("p", [1,2])
+@pytest.mark.parametrize("m", [1,2])
+def test_fit_f(r, p, m):
 	np.random.seed(0)
-	X, Y, lam = generate_test_data()
+	X, Y, lam = generate_test_data(M = 20, r = r, p = p, m = m)
 	poles = lam - 0.1
 	C = _build_cauchy(X, poles)
 
@@ -94,10 +98,10 @@ def fit_h(Y, C, f, g):
 		for k in range(r):
 			Ymis[i] -= (f[k:k+1].T @ g[k:k+1].conj())* C[i,k]
 		
-		obj+= cp.norm(Ymis[i] + Y[i] * (C[i,:] @ h), 'fro')**2
+		obj+= cp.sum_squares(Ymis[i] + Y[i] * (C[i,:] @ h))
 		
 	prob = cp.Problem(cp.Minimize(obj))
-	prob.solve(verbose = True)
+	prob.solve(verbose = True, solver = 'OSQP',eps_abs = 1e-8, eps_rel = 1e-8)
 	return h.value
 
 
@@ -131,10 +135,10 @@ def fit_fh(Y, C, g):
 	for i in range(C.shape[0]):
 		for k in range(C.shape[1]):
 			Hr[i] += (f[k:k+1].T @ g[k:k+1].conj())*C[i,k]
-		obj += cp.norm(Y[i]*(1 + C[i,:]@ h) - Hr[i], 'fro')**2
+		obj += cp.sum_squares(Y[i]*(1 + C[i,:]@ h) - Hr[i])
 
 	prob = cp.Problem(cp.Minimize(obj))
-	prob.solve(verbose = True)
+	prob.solve(verbose = True, solver = 'OSQP',eps_abs = 1e-8, eps_rel = 1e-8)
 	return f.value, h.value
 
 
@@ -168,10 +172,10 @@ def fit_gh(Y, C, f):
 	for i in range(C.shape[0]):
 		for k in range(C.shape[1]):
 			Hr[i] += (f[k:k+1].T @ cp.conj(g[k:k+1]) )*C[i,k]
-		obj += cp.norm(Y[i]*(1 + C[i,:] @ h) - Hr[i], 'fro')**2
+		obj += cp.sum_squares(Y[i]*(1 + C[i,:] @ h) - Hr[i])
 
 	prob = cp.Problem(cp.Minimize(obj))
-	prob.solve(verbose = True)
+	prob.solve(verbose = True, solver = 'OSQP',eps_abs = 1e-8, eps_rel = 1e-8)
 	return g.value, h.value
 
 def test_fit_gh():
