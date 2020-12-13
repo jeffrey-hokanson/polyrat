@@ -11,33 +11,38 @@ from .aaa import _build_cauchy
 
 
 def _fit_f(Y, C, g):
-	M = Y.shape[0]
+	r""" Find the leff-hand side vectors only
+
+	"""
+	M, p, m = Y.shape
 	r = C.shape[1]
-	p = Y.shape[1]
-	m = Y.shape[2]
 	
-	I = np.eye(p)
 
-	# TODO: Make this a single loop function
-	A = []
-	for k,j in product(range(r), range(p)):
-		Ajk = np.kron( C[:,k], np.outer(I[:,j], g[k].conj()).flatten())
-		A.append(Ajk)
-	A = np.column_stack(A)
+	# Allocate storage
+	if np.isrealobj(Y) and np.isrealobj(C) and np.isrealobj(g):
+		A = np.zeros((M*p*m, p*r), dtype = np.float)
+	else:
+		A = np.zeros((M*p*m, p*r), dtype = np.complex)
 
-	b = Y.flatten()
-	x, res, rank, s = scipy.linalg.lstsq(A, b, overwrite_a = True, overwrite_b = False)	
-	
+	for i, (k, j) in enumerate(product(range(r), range(p))):
+		A[j::p,i] = np.outer(C[:,k], g[k].conj()).flatten()
+
+	# Transpose the array so we can more simply construct the matrix as above
+	b = Y.transpose((0,2,1)).reshape(-1)
+	x, res, rank, s = scipy.linalg.lstsq(A, b, 
+		overwrite_a = True, overwrite_b = False, check_finite = False, 
+		lapack_driver = 'gelsy')	
+
+	# NB: The above is a sparse linear solve
+	# for small p, m it is faster to do a dense solve as above
+
 
 	return x.reshape(r, p)
 
 
 def _fit_g(Y, C, f):
-
-	M = Y.shape[0]
+	M, p, m = Y.shape
 	r = C.shape[1]
-	p = Y.shape[1]
-	m = Y.shape[2]
 	
 	I = np.eye(m)
 
