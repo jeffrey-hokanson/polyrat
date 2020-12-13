@@ -20,24 +20,21 @@ def _fit_f(Y, C, g):
 
 	# Allocate storage
 	if np.isrealobj(Y) and np.isrealobj(C) and np.isrealobj(g):
-		A = np.zeros((M*p*m, p*r), dtype = np.float)
+		A = np.zeros((M*m, r), dtype = np.float)
+		f = np.zeros((r, p), dtype = np.float)
 	else:
-		A = np.zeros((M*p*m, p*r), dtype = np.complex)
+		A = np.zeros((M*m, r), dtype = np.complex)
+		f = np.zeros((r, p), dtype = np.complex)
 
-	for i, (k, j) in enumerate(product(range(r), range(p))):
-		A[j::p,i] = np.outer(C[:,k], g[k].conj()).flatten()
+	for j in range(p):
+		for k in range(m):
+			A[k*M:(k+1)*M] = np.multiply(g[:,k].conj(), C)
+			
+		f[:,j] = scipy.linalg.lstsq(A, Y[:,j].transpose().flatten(), 
+			overwrite_a = True, overwrite_b = False, check_finite = False, 
+			lapack_driver = 'gelsy')[0]
 
-	# Transpose the array so we can more simply construct the matrix as above
-	b = Y.transpose((0,2,1)).reshape(-1)
-	x, res, rank, s = scipy.linalg.lstsq(A, b, 
-		overwrite_a = True, overwrite_b = False, check_finite = False, 
-		lapack_driver = 'gelsy')	
-
-	# NB: The above is a sparse linear solve
-	# for small p, m it is faster to do a dense solve as above
-
-
-	return x.reshape(r, p)
+	return f
 
 
 def _fit_g(Y, C, f):
