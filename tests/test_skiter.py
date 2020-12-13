@@ -1,6 +1,11 @@
+
+
 import numpy as np
 from polyrat import *
 from polyrat.skiter import _minimize_inf_norm_real, _minimize_inf_norm_complex
+
+import pytest
+from .test_data import *
 
 def test_minimize_inf_norm_real():
 	np.random.seed(0)
@@ -34,13 +39,65 @@ def test_minimize_inf_norm_complex():
 		assert obj <= obj_new
 
 
-def test_skfit_rebase():
-	X = np.random.randn(50,1) #+ 1j*np.random.randn(100,1)
-	#y = np.random.randn(100,) + 1j*np.random.randn(100,)
-	y = np.abs(X).flatten()
 
-	skfit_rebase(X, y, 4, 4, norm = np.inf)
+
+
+@pytest.mark.parametrize("M", [1000])
+@pytest.mark.parametrize("num_degree", [5, [3,4]])
+@pytest.mark.parametrize("denom_degree", [5, [5,3]])
+@pytest.mark.parametrize("dim", [1, 2])
+@pytest.mark.parametrize("Basis", 
+	[LegendrePolynomialBasis,
+	 ArnoldiPolynomialBasis])
+@pytest.mark.parametrize("seed", [0])
+@pytest.mark.parametrize("norm", [2])
+@pytest.mark.parametrize("refine", [True, False])
+@pytest.mark.parametrize("complex_", [True, False])
+
+def test_skfit_exact(M, dim, num_degree, denom_degree, refine, norm, Basis, seed, complex_):
+	r"""
+	When the data is a *exactly* a rational function of the specified degree,
+	SK iteration should recover it exactly (modulo conditioning issues)
+	"""
+
+	X, y = random_data(M, dim, complex_, seed)
+	
+	# Exit without error if testing a total degree problem
+	try:
+		num_degree = int(num_degree)
+	except (TypeError, ValueError):
+		if len(num_degree) != dim: return
+	try:
+		denom_degree = int(denom_degree)
+	except (TypeError, ValueError):
+		if len(denom_degree) != dim: return
+
+	# Generate exact fit
+	P = LegendrePolynomialBasis(X, num_degree).vandermonde_X
+	Q = LegendrePolynomialBasis(X, denom_degree).vandermonde_X
+
+	# coefficients
+	a = np.random.randn(P.shape[1])
+	b = np.random.randn(Q.shape[1])
+	if complex_:
+		a = a + 1j*np.random.randn(*a.shape)
+		b = b + 1j*np.random.randn(*b.shape)
+		
+	y = (P @ a)/(Q @ b)
+
+	sk = SKRationalApproximation(num_degree, denom_degree, 
+		norm = norm, Basis = Basis, verbose = True)
+	
+	sk.fit(X, y)
+	if refine:
+		sk.refine(X, y)
+	
+	err = np.linalg.norm(sk(X) - y)
+	print(f" error : {err:8.2e}")
+	assert err < 5e-8, "Expected an exact fit"
+
 
 if __name__ == '__main__':
 	#test_minimize_inf_norm_complex()	
-	test_skfit_rebase()
+	#test_skfit_rebase()
+	test_array_valued

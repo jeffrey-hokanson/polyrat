@@ -10,11 +10,13 @@ from .rational import RationalFunction, RationalRatio
 from iterprinter import IterationPrinter
 import scipy.linalg
 
+from .util import minimize_2norm_varpro, minimize_2norm_dense
+
 
 def _solve_linearized_vecfit(num_basis, denom_basis, y):
 	A = np.hstack([ num_basis, -(denom_basis[:,1:].T * y).T ])
 	b = y
-	x, res, rank, s = scipy.linalg.lstsq(A, b, overwrite_a = True, overwrite_b = True)
+	x, res, rank, s = scipy.linalg.lstsq(A, b, overwrite_a = True, overwrite_b = False)
 	a = x[0:num_basis.shape[1]]
 	b = np.hstack([1, x[num_basis.shape[1]:]])
 	return a, b, s[0]/s[-1]
@@ -43,6 +45,7 @@ def vecfit(X, y, num_degree, denom_degree, verbose = True,
 		* 'linearized', perform a linearized rational fitting
 		* array-like: specify an array of denom_degree initial poles
 	"""
+	nout_dim = len(y.shape[1:])
 	assert num_degree >= 0 and denom_degree >= 0, "numerator and denominator degrees must be nonnegative integers"
 	assert num_degree + 1 >= denom_degree, "Vector fitting requires denominator degree to be at most one less than numerator degree"
 	if isinstance(poles0, str):
@@ -84,13 +87,16 @@ def vecfit(X, y, num_degree, denom_degree, verbose = True,
 		num_basis = np.hstack([C, V])
 		denom_basis = np.hstack([np.ones((len(X), 1)), C])
 
-		a, b, cond = _solve_linearized_vecfit(num_basis, denom_basis, y)
+		#a, b, cond = _solve_linearized_vecfit(num_basis, denom_basis, y)
+		a, b, cond = minimize_2norm_varpro(num_basis, denom_basis, y, P_orth = False, method = 'ls')
 		b_norm = b[0] #np.linalg.norm(b)
 		b /= b_norm
 		a /= b_norm
 	
 		# Compute the rational approximation
-		r = (num_basis @ a) / (denom_basis @ b)
+		Pa = np.einsum('ij,j...->i...', num_basis, a)
+		Qb = denom_basis @ b
+		r = np.multiply(1./Qb.reshape(-1, *([1,]*nout_dim)), Pa)
 
 		residual_norm = np.linalg.norm( (y - r).flatten(), 2)
 		delta_norm = np.linalg.norm( (r_old - r).flatten(), 2)
@@ -106,6 +112,7 @@ def vecfit(X, y, num_degree, denom_degree, verbose = True,
 			printer.print_iter(it = it, res = residual_norm, delta = delta_norm, bnorm = b_norm, cond = cond)	
 
 		if it == maxiter - 1:
+			if verbose: print("maximum iteration limit reached")
 			break
 
 		if delta_norm < ftol:
@@ -146,12 +153,14 @@ class VectorFittingRationalFunction(RationalRatio):
 
 	def eval(self, X):
 		C = _build_cauchy(X, self.poles)
-		num = C @ self._a
+		num = np.einsum('ij,j...->i...', C, self._a)
 		denom = self._b[0] + C @ self._b[1:]
+		
 		if self.bonus_poly is not None:
 			num += self.bonus_poly(X)
 
-		return num/denom
+		nout_dim = len(self._a.shape[1:])
+		return np.multiply(1./denom.reshape(-1, *([1,]*nout_dim)), num)
 
 			
 

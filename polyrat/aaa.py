@@ -33,7 +33,7 @@ from .rational import RationalBarycentric
 
 
 def eval_aaa(xeval, x, y, I, b):
-	"""
+	""" Evaluate an AAA rational approximation
 	Parameters
 	----------
 	xeval: np.array

@@ -24,8 +24,13 @@ class Polynomial:
 	def __call__(self, X):
 		return self.eval(X)
 
+	@property
+	def degree(self):
+		return self.basis.degree	
+
 	def eval(self, X):
-		return self.basis.vandermonde(X) @ self.coef
+		#return self.basis.vandermonde(X) @ self.coef
+		return np.einsum('ij,j...->i...', self.basis.vandermonde(X), self.coef)
 
 	def roots(self, *args, **kwargs): 
 		return self.basis.roots(self.coef, *args, **kwargs)	
@@ -52,8 +57,12 @@ class PolynomialApproximation(Polynomial):
 			from .arnoldi import ArnoldiPolynomialBasis
 			Basis = ArnoldiPolynomialBasis
 		self.Basis = Basis
-		self.degree = degree
+		self._degree = degree
 		self.norm = norm
+
+	@property
+	def degree(self):
+		return self._degree
 
 	def fit(self, X, y, **kwargs):
 		self.basis = self.Basis(X, self.degree)

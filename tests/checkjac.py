@@ -18,6 +18,7 @@ def check_jacobian(x, residual, jacobian, h = 2e-7, relative = False):
 		r1 = residual(x1) 
 		r2 = residual(x2)
 		Ji_est = (r1 - r2)/(2*h)
+		
 		err[i] = np.linalg.norm(Ji_est - J[:,i],2)
 		print(f" {i:3d} : error {err[i]:8.2e}, relative {err[i]/np.linalg.norm(J[:,i],2):8.2e}")
 		if relative:
