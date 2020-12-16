@@ -11,33 +11,35 @@ from .aaa import _build_cauchy
 
 
 def _fit_f(Y, C, g):
-	M = Y.shape[0]
+	r""" Find the leff-hand side vectors only
+
+	"""
+	M, p, m = Y.shape
 	r = C.shape[1]
-	p = Y.shape[1]
-	m = Y.shape[2]
-	
-	I = np.eye(p)
-
-	# TODO: Make this a single loop function
-	A = []
-	for k,j in product(range(r), range(p)):
-		Ajk = np.kron( C[:,k], np.outer(I[:,j], g[k].conj()).flatten())
-		A.append(Ajk)
-	A = np.column_stack(A)
-
-	b = Y.flatten()
-	x, res, rank, s = scipy.linalg.lstsq(A, b, overwrite_a = True, overwrite_b = False)	
 	
 
-	return x.reshape(r, p)
+	# Allocate storage
+	if np.isrealobj(Y) and np.isrealobj(C) and np.isrealobj(g):
+		A = np.zeros((M*m, r), dtype = np.float)
+		f = np.zeros((r, p), dtype = np.float)
+	else:
+		A = np.zeros((M*m, r), dtype = np.complex)
+		f = np.zeros((r, p), dtype = np.complex)
+
+	for j in range(p):
+		for k in range(m):
+			A[k*M:(k+1)*M] = np.multiply(g[:,k].conj(), C)
+			
+		f[:,j] = scipy.linalg.lstsq(A, Y[:,j].transpose().flatten(), 
+			overwrite_a = True, overwrite_b = False, check_finite = False, 
+			lapack_driver = 'gelsy')[0]
+
+	return f
 
 
 def _fit_g(Y, C, f):
-
-	M = Y.shape[0]
+	M, p, m = Y.shape
 	r = C.shape[1]
-	p = Y.shape[1]
-	m = Y.shape[2]
 	
 	I = np.eye(m)
 

@@ -4,3 +4,5 @@ __pycache__
 dist
 polyrat.egg-info
 .eggs
+doc/_build/
+tests/polyrat

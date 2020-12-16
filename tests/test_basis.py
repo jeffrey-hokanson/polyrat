@@ -229,12 +229,45 @@ def test_vandermonde_derivative(Basis, dim, degree):
 		else:
 			assert norm_err < 1e-6
 
+
+@pytest.mark.parametrize("Basis",
+	[MonomialPolynomialBasis,
+	 LegendrePolynomialBasis,
+	 ChebyshevPolynomialBasis,
+	 HermitePolynomialBasis, 
+	 LaguerrePolynomialBasis,
+	ArnoldiPolynomialBasis,
+	]
+)
+@pytest.mark.parametrize("dim", [1,2,3])
+@pytest.mark.parametrize("degree",
+	[3,
+	(3,2),
+	(2,3),
+	(3,0,2),
+	]
+)
+def test_basis_names(Basis, dim, degree):
+	# Exit without error if testing a total degree problem
+	try:
+		degree = int(degree)
+	except (TypeError, ValueError):
+		if len(degree) != dim: return
+
+	X = np.random.randn(1000, dim)
+	
+	b = Basis(X, degree)
+	print(b)
+
+
+
 if __name__ == '__main__':
 	#test_monomial_total(100, 10, 3, MonomialPolynomialBasis,0) 
 	#test_monomial_max(100, [4], MonomialPolynomialBasis,0) 
 	#test_subspace_angles(10, [1,4], 2, ArnoldiPolynomialBasis)
 	#test_scale(MonomialPolynomialBasis, 1)
-	test_vandermonde_derivative(ArnoldiPolynomialBasis, 2, (3,2))
+	#test_vandermonde_derivative(ArnoldiPolynomialBasis, 2, (3,2))
+	test_basis_names(MonomialPolynomialBasis, 2, [3,3])
 	pass
 
 

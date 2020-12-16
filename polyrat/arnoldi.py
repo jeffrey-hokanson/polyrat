@@ -24,6 +24,15 @@ def _update_rule(indices, idx):
 def vandermonde_arnoldi_CGS(X, degree, weight = None, mode = None):
 	r""" Multivariate Vandermode with Arnoldi using classical Gram-Schmidt with reorthogonalization
 
+
+	This function uses the Arnoldi proceedure to construct an orthogonal
+	basis for polynomials.  In the univariate case, this corresponds to
+	constructing a Krylov subspace for the starting vector :math:`\mathbf{b}`
+	and matrix :math:`\text{diag}(\mathbf{x})`; see [BNT19x]_. The multivariate
+	case uses a similar approach, but care is taken to use the right
+	combination of input coordinates.; see [AKL+20]_.
+
+
 	Notes
 	-----
 	* The use of Classical Gram-Schmidt with reorthogonalization
@@ -35,8 +44,8 @@ def vandermonde_arnoldi_CGS(X, degree, weight = None, mode = None):
 
 	Parameters
 	----------
-	X: np.array (M, dim)
-		Input coordinates
+	X: np.array
+		Input coordinates of size (M, dim)
 	degree: int or list of ints
 		Polynomial degree.  If an int, a total degree polynomial is constructed;
 		if a list, the list must be length m and a maximum degree polynomial is
@@ -45,7 +54,17 @@ def vandermonde_arnoldi_CGS(X, degree, weight = None, mode = None):
 		Initial vector in the Arnoldi iteration
 	mode: None or ['total', 'max']
 		What type of polynomial basis to construct; only matters if dim>1.
-		If None, the type of basis will be automatically detected. 
+		If None, the type of basis will be automatically detected.
+
+	
+	Returns
+	-------
+	Q: :class:`~numpy:numpy.ndarray`
+		Orthonormal basis for the desired polynomials on the input coordinates.
+	R: :class:`~numpy:numpy.ndarray`
+		Matrix containing orthogonalization information; needed to evaluate polynomial at new coordinates.
+	indices: :class:`~numpy:numpy.ndarray`
+		List of indices showing the order in which the basis was constructed.	 
 	"""
 	M, dim = X.shape
 
@@ -98,8 +117,27 @@ def vandermonde_arnoldi_CGS(X, degree, weight = None, mode = None):
 
 
 
-def vandermonde_arnoldi_eval(X, R, indices, mode, weight = None):
-	r"""
+def vandermonde_arnoldi_eval(X, R, indices, weight = None):
+	r""" Evaluate a Vandermonde with Arnoldi polynomial
+
+	Parameters
+	----------
+	X: array_like
+		Coordiantes at which to evaluate the polynomial 
+	R: :class:`~numpy:numpy.ndarray`
+		Upper triangular matrix containing orthogonalization information from 
+		:class:`~polyrat:polyrat.vandermonde_arnoldi_CGS`.
+	indices: :class:`~numpy:numpy.ndarray`
+		The ordering of polynomial powers returned from
+		:class:`~polyrat:polyrat.vandermonde_arnoldi_CGS`.
+	weight: None or array_like
+		Starting vector for Arnoldi; by default is the ones vector.
+		In general, this should not change without good reason.
+
+	Returns
+	-------
+	W: :class:`~numpy:numpy.ndarray`
+		Polynomial basis evaluated at the specified points.
 	"""
 
 	X = np.array(X)
@@ -129,9 +167,32 @@ def vandermonde_arnoldi_eval(X, R, indices, mode, weight = None):
 	return W
 
 
-def vandermonde_arnoldi_eval_der(X, R, indices, mode, weight = None, V = None):
+def vandermonde_arnoldi_eval_der(X, R, indices, weight = None, V = None):
+	r""" Evaluate the derivative of Vandermonde with Arnoldi polynomial basis
+
+	Parameters
+	----------
+	X: array_like
+		Coordiantes at which to evaluate the polynomial 
+	R: :class:`~numpy:numpy.ndarray`
+		Upper triangular matrix containing orthogonalization information from 
+		:class:`~polyrat:polyrat.vandermonde_arnoldi_CGS`.
+	indices: :class:`~numpy:numpy.ndarray`
+		The ordering of polynomial powers returned from
+		:class:`~polyrat:polyrat.vandermonde_arnoldi_CGS`.
+	weight: None or array_like
+		Starting vector for Arnoldi; by default is the ones vector.
+		In general, this should not change without good reason.
+	V: :class:`~numpy:numpy.ndarray`
+		Evaluation of the polynomial without the derivative at X.
+	
+	Returns
+	-------
+	W: :class:`~numpy:numpy.ndarray`
+		Polynomial basis deriative evaluated at the specified points.
+	"""
 	if V is None:
-		V = vandermonde_arnoldi_eval(X, R, indices, mode, weight = weight)
+		V = vandermonde_arnoldi_eval(X, R, indices, weight = weight)
 		
 	M = X.shape[0]
 	N = R.shape[1]
@@ -154,7 +215,14 @@ def vandermonde_arnoldi_eval_der(X, R, indices, mode, weight = None, V = None):
 
 
 class ArnoldiPolynomialBasis(PolynomialBasis):
-	r""" A polynomial basis constructed using Vandermonde with Arnoldi
+	r""" A polynomial basis constructed using Vandermonde with Arnoldi.
+
+	A polynomial basis constructed with Vandermonde with Arnoldi;
+	see [BNT19x]_, [AKL+20]_ for discussion.
+
+	Notes
+	-----
+	* In order to compute the roots in the univariate case we convert to Legendre polynomial. 
 
 	"""
 	def __init__(self, X, degree, weight = None):
@@ -167,13 +235,13 @@ class ArnoldiPolynomialBasis(PolynomialBasis):
 		return self._Q   
 
 	def vandermonde(self, X, weight = None):
-		return vandermonde_arnoldi_eval(X, self._R, self._indices, self.mode, weight = weight)
+		return vandermonde_arnoldi_eval(X, self._R, self._indices, weight = weight)
 
 	def vandermonde_derivative(self, X, weight = None):
 		if np.array_equal(X, self.X):
-			return vandermonde_arnoldi_eval_der(X, self._R, self._indices, self.mode, weight = weight, V = self._Q)
+			return vandermonde_arnoldi_eval_der(X, self._R, self._indices,  weight = weight, V = self._Q)
 		else:
-			return vandermonde_arnoldi_eval_der(X, self._R, self._indices, self.mode, weight = weight)
+			return vandermonde_arnoldi_eval_der(X, self._R, self._indices,  weight = weight)
 
 	def roots(self, coef, *args, **kwargs):
 		from .basis import LegendrePolynomialBasis
