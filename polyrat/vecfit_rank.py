@@ -9,22 +9,25 @@ from .arnoldi import ArnoldiPolynomialBasis
 from .aaa import _build_cauchy
 
 
+def _zeros(size, *args):
+	r""" allocate a zeros matrix of the given size matching the type of the arguments
+	"""
+	if all([np.isrealobj(a) for a in args]):
+		return np.zeros(size, dtype = np.float)
+	else:
+		return np.zeros(size, dtype = np.complex)
+
 
 def _fit_f(Y, C, g):
-	r""" Find the leff-hand side vectors only
+	r""" Find the left-hand side vectors only
 
 	"""
 	M, p, m = Y.shape
 	r = C.shape[1]
 	
-
 	# Allocate storage
-	if np.isrealobj(Y) and np.isrealobj(C) and np.isrealobj(g):
-		A = np.zeros((M*m, r), dtype = np.float)
-		f = np.zeros((r, p), dtype = np.float)
-	else:
-		A = np.zeros((M*m, r), dtype = np.complex)
-		f = np.zeros((r, p), dtype = np.complex)
+	A = _zeros((M*m, r), Y, C, g)
+	f = _zeros((r, p), Y, C, g)
 
 	for j in range(p):
 		for k in range(m):
