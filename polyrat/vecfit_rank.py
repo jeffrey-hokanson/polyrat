@@ -33,7 +33,7 @@ def _fit_f(Y, C, g):
 		for k in range(m):
 			A[k*M:(k+1)*M] = np.multiply(g[:,k].conj(), C)
 			
-		f[:,j] = scipy.linalg.lstsq(A, Y[:,j].transpose().flatten(), 
+		f[:,j] = scipy.linalg.lstsq(A, Y[:,j].T.flatten(), 
 			overwrite_a = True, overwrite_b = False, check_finite = False, 
 			lapack_driver = 'gelsy')[0]
 
@@ -44,21 +44,23 @@ def _fit_g(Y, C, f):
 	M, p, m = Y.shape
 	r = C.shape[1]
 	
-	I = np.eye(m)
+	# Allocate storage
+	A = _zeros((M*p, r), Y, C, f)
+	g = _zeros((r, m), Y, C, f)
 
-	# TODO: Make this a single loop function
-	A = []
-	for k,j in product(range(r), range(m)):
-		Ajk = np.kron( C[:,k], np.outer(f[k], I[:,j]).flatten())
-		A.append(Ajk)
-	A = np.column_stack(A)
-
-	b = Y.flatten()
-	x, res, rank, s = scipy.linalg.lstsq(A, b, overwrite_a = True, overwrite_b = False)	
+	for j in range(m):
+		for k in range(p):
+			A[k*M:(k+1)*M] = np.multiply(f[:,k], C)
 	
-	return x.reshape(r, m).conj()
+		g[:,j] = scipy.linalg.lstsq(A, Y[:,:,j].T.flatten(), 
+			overwrite_a = True, overwrite_b = False, check_finite = False, 
+			lapack_driver = 'gelsy')[0]
+
+	return g.conj()
+
 
 def _fit_h(Y, C, f, g):
+	# NOTE: This function has not yet been optimized
 	M = Y.shape[0]
 	r = C.shape[1]
 	p = Y.shape[1]

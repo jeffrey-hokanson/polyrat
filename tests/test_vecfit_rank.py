@@ -82,6 +82,10 @@ def test_fit_g():
 
 	g_true = fit_g(Y, C, f)
 	err = np.max(np.abs(g_true - g_np))
+	print("true g")
+	print(g_true)
+	print("estimated g")
+	print(g_np)
 	print(err)
 	assert err < 1e-5
 
