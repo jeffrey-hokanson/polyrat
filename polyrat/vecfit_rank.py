@@ -88,7 +88,8 @@ def _fit_fh(Y, C, g):
 
 	for s in range(p):
 		for t in range(m):
-			Atmp[t*M:(t+1)*M,:] = C @ np.diag(g[:,t].conj()) #np.multiply(g[:t].conj(), C)
+			#Atmp[t*M:(t+1)*M,:] = C @ np.diag(g[:,t].conj())
+			Atmp[t*M:(t+1)*M,:] = np.multiply(C, g[:,t].conj())
 
 			rows = slice(s*m*M + t*M, s*m*M + (t+1)*M)
 			A[rows,:] = np.diag(Y[:,s,t]) @ C
@@ -121,29 +122,52 @@ def _fit_fh(Y, C, g):
 
 
 def _fit_gh(Y, C, f):
-	M = Y.shape[0]
+	M, p, m = Y.shape
 	r = C.shape[1]
-	p = Y.shape[1]
-	m = Y.shape[2]
+
+	Q = _zeros((M*p, r, m), Y, C, f)
+	R = _zeros((r, r, m), Y, C, f)
+	A = _zeros((M*p*m, r), Y, C, f)
+	b = _zeros((M*p*m), Y, C, f)
+	g = _zeros((r, m), Y, C, f)
+
+	Atmp = _zeros((M*p, r), Y, C, f)
 	
-	I = np.eye(m)
+	for t in range(m):
+		for s in range(p):
+			#Atmp[s*M:(s+1)*M,:] = C @ np.diag(f[:,s])
+			Atmp[s*M:(s+1)*M,:] = np.multiply(C, f[:,s])
+			#print("ERROR", np.linalg.norm(Atmp[t*M:(t+1)*M] - np.multiply(C, f[:,s])))
+			rows = slice(t*p*M + s*M, t*p*M + (s+1)*M)
+			#A[rows,:] = np.diag(Y[:,s,t]) @ C
+			A[rows,:] = (Y[:,s,t].reshape(-1,1)) * C
+			b[rows] = Y[:,s,t]
 
-	# TODO: Make this a single loop function
-	A = []
-	for k, j in product(range(r), range(m)):
-		Ajk = np.kron( C[:,k], np.outer(f[k], I[:,j]).flatten())
-		A.append(Ajk)
-
-	A.append(-Y.flatten()[:, None] * np.kron(C, np.ones((m*p,1))))
+		Q[:,:,t], R[:,:,t] = scipy.linalg.qr(Atmp, overwrite_a = True, mode = 'economic')
+		
+		# now apply the projector to both sides		
+		rows = slice(t*p*M, (t+1)*p*M)
 	
-	A = np.column_stack(A)
+		# TODO: the conjugation here (and below) takes up a signifant running time	
+		b[rows] -= Q[:,:,t] @ (Q[:,:,t].T.conj() @ b[rows])
+		A[rows] -= Q[:,:,t] @ (Q[:,:,t].T.conj() @ A[rows])
+	
+	# Now solve for h
+	h = -scipy.linalg.lstsq(A, b)[0]
 
-	b = Y.flatten()
-	x, res, rank, s = scipy.linalg.lstsq(A, b, overwrite_a = True, overwrite_b = False)	
+	# Now compute g
+	rhs = _zeros((M*p), Y, C, f)
+	Ch = C @ h
+	for t in range(m):
+		for s in range(p):
+			# Compute: rhs[t*M:(t+1)*M] = np.diag(Y[:,s,t]) @ C @ h + Y[:,s,t]
+			# Below is a compact expression using only vector operations
+			rhs[s*M:(s+1)*M] = Y[:,s,t] * (Ch + 1)
 
-	g = x[:r*m].reshape(r, m).conj()
-	h = x[r*m:]
-	return g, h
+		g[:,t] = scipy.linalg.solve_triangular(R[:,:,t], Q[:,:,t].T.conj() @ rhs)
+
+	return g.conj(), h
+
 	
 
 

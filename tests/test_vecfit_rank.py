@@ -203,15 +203,28 @@ def test_fit_gh():
 
 	f = np.random.randn(C.shape[1], Y.shape[1])
 
-	g_true, h_true = fit_gh(Y, C, f)
 	g, h = _fit_gh(Y, C, f)
+	g_true, h_true = fit_gh(Y, C, f)
 
 	err_g = np.max(np.abs(g - g_true))
 	err_h = np.max(np.abs(h - h_true))
 	
-	print(err_g, err_h)
+	print("---true---")
+	print("g")
+	print(g_true)
+	print("h")
+	print(h_true)
+	print('---solver---')
+	print("g")
+	print(g)
+	print("h")
+	print(h)
+	
+	print("\n")
+	print(f"Error: g:{err_g}, h:{err_h}")
 	assert err_g < 1e-5
 	assert err_h < 1e-5
+	assert False	
 
 
 def test_vecfit_rank():
