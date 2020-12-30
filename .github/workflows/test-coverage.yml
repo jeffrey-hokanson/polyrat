@@ -53,21 +53,6 @@ jobs:
         parallel-finished: true
         debug: true    
 
-  deploy:
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.8
-    - name: Publish Package
-      uses: pypa/gh-action-pypi-publish@master
-      with:
-        user: __token__
-        password: ${{ secrets.pypi_password }}
 
 #    - name: Coveralls Parallel
 #      uses: coverallsapp/github-action@master
