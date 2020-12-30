@@ -156,13 +156,26 @@ def test_fit_fh():
 
 	g = np.random.randn(C.shape[1], Y.shape[2])
 
-	f_true, h_true = fit_fh(Y, C, g)
 	f, h = _fit_fh(Y, C, g)
+
+	f_true, h_true = fit_fh(Y, C, g)
 
 	err_f = np.max(np.abs(f - f_true))
 	err_h = np.max(np.abs(h - h_true))
+
+	print("---true---")
+	print("f")
+	print(f_true)
+	print("h")
+	print(h_true)
+	print('---solver---')
+	print("f")
+	print(f)
+	print("h")
+	print(h)
 	
-	print(err_f, err_h)
+	print("\n")
+	print(f"Error: f:{err_f}, h:{err_h}")
 	assert err_f < 1e-5
 	assert err_h < 1e-5
 

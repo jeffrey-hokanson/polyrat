@@ -61,10 +61,8 @@ def _fit_g(Y, C, f):
 
 def _fit_h(Y, C, f, g):
 	# NOTE: This function has not yet been optimized
-	M = Y.shape[0]
+	M, p, m = Y.shape
 	r = C.shape[1]
-	p = Y.shape[1]
-	m = Y.shape[2]
 
 	Ymis = np.copy(Y.flatten())
 	for k in range(r):
@@ -77,29 +75,49 @@ def _fit_h(Y, C, f, g):
 
 
 def _fit_fh(Y, C, g):
-	M = Y.shape[0]
+	M, p, m = Y.shape
 	r = C.shape[1]
-	p = Y.shape[1]
-	m = Y.shape[2]
-	
-	I = np.eye(p)
 
-	# TODO: Make this a single loop function
-	A = []
-	for k,j in product(range(r), range(p)):
-		Ajk = np.kron( C[:,k], np.outer(I[:,j], g[k].conj()).flatten())
-		A.append(Ajk)
+	Q = _zeros((M*m, r, p), Y, C, g)
+	R = _zeros((r, r, p), Y, C, g)
+	A = _zeros((M*p*m, r), Y, C, g)
+	b = _zeros((M*p*m), Y, C, g)
+	f = _zeros((r, p), Y, C, g)
 
-	A.append(-Y.flatten()[:, None] * np.kron(C, np.ones((m*p,1))))
-	
-	A = np.column_stack(A)
+	Atmp = _zeros((M*m, r), Y, C, g)
 
-	b = Y.flatten()
-	x, res, rank, s = scipy.linalg.lstsq(A, b, overwrite_a = True, overwrite_b = False)	
+	for s in range(p):
+		for t in range(m):
+			Atmp[t*M:(t+1)*M,:] = C @ np.diag(g[:,t].conj()) #np.multiply(g[:t].conj(), C)
 
-	f = x[:r*p].reshape(r, p)
-	h = x[r*p:]
+			rows = slice(s*m*M + t*M, s*m*M + (t+1)*M)
+			A[rows,:] = np.diag(Y[:,s,t]) @ C
+			b[rows] = Y[:,s,t]
+
+		Q[:,:,s], R[:,:,s] = scipy.linalg.qr(Atmp, overwrite_a = True, mode = 'economic')
+
+		# now apply the projector to both sides		
+		rows = slice(s*m*M, (s+1)*m*M)
+		
+		b[rows] -= Q[:,:,s] @ (Q[:,:,s].T.conj() @ b[rows])
+		A[rows] -= Q[:,:,s] @ (Q[:,:,s].T.conj() @ A[rows])
+
+	# Now solve for h
+	h = -scipy.linalg.lstsq(A, b)[0]
+
+	# Now compute f
+	rhs = _zeros((M*m), Y, C, g)
+	Ch = C @ h
+	for s in range(p):
+		for t in range(m):
+			# Compute: rhs[t*M:(t+1)*M] = np.diag(Y[:,s,t]) @ C @ h + Y[:,s,t]
+			# Below is a compact expression using only vector operations
+			rhs[t*M:(t+1)*M] = Y[:,s,t] * (Ch + 1)
+
+		f[:,s] = scipy.linalg.solve_triangular(R[:,:,s], Q[:,:,s].T.conj() @ rhs)
+
 	return f, h
+		 
 
 
 def _fit_gh(Y, C, f):
