@@ -162,6 +162,8 @@ class VectorFittingRationalFunction(RationalRatio):
 		nout_dim = len(self._a.shape[1:])
 		return np.multiply(1./denom.reshape(-1, *([1,]*nout_dim)), num)
 
+	def pole_residue(self):
+		return self.poles, self._a
 			
 
 class VectorFittingRationalApproximation(VectorFittingRationalFunction):

@@ -9,7 +9,9 @@ import pytest
 def generate_test_data(M = 100, r = 10, p = 5, m = 3):
 	z = 1j*np.linspace(-1, 1, M)
 	lam = 1j*np.linspace(-1, 1,r) - 0.1
-	
+
+	# Residues
+	# TODO: make these symmetric	
 	As = [np.random.randn(p,1) @ np.random.randn(1,m) for lam_ in lam] 
 	#As = [np.eye(p*m)[k % (m*p)].reshape(p,m) for k, lam_ in enumerate(lam)] 
 	Hz = np.zeros((M, p, m), dtype = np.complex)
@@ -228,12 +230,10 @@ def test_fit_gh():
 
 def test_vecfit_rank():
 	np.random.seed(0)
-	X, Y, lam = generate_test_data(M = 500, r = 5)
-	poles = lam - 10e-1
-	poles = lam + 1e-3*(np.random.randn(*poles.shape) + 1j*np.random.randn(*poles.shape))
+	r = 5
+	X, Y, lam = generate_test_data(M = 500, r = r)
 
-	r = len(poles)
-	polyrat.vecfit_rank(X, Y, r - 1, r, poles0 = poles)
+	polyrat.vecfit_rank(X, Y, r - 1, r, maxiter = 100)
 
 
 #	poles0 =  lam - 0.1

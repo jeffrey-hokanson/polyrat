@@ -28,12 +28,33 @@ def test_rational_ratio(Basis):
 
 	rat = RationalRatio(p, q)
 
-	print("poles", rat.poles())
+	poles, residues = rat.pole_residue()
+	print("poles", poles)
+	print("residues", residues)
 
+
+def test_rational_pole_residue():
+	X, Y = array_absolute_value(1000, (5,4))
+	rat = SKRationalApproximation(5,6, Basis = LegendrePolynomialBasis)
+	rat.fit(X, Y)
 	
+	poles, residues = rat.pole_residue()
+	xhat = X[0:1]
+	yhat = rat(xhat)
+	yhat2 = np.zeros(yhat.shape, dtype = np.complex)
+	for lam, R in zip(poles, residues):
+		yhat2 += R/(xhat.flatten() - lam)
+
+	print("true")	
+	print(yhat)
+	print("sum")
+	print(yhat2)
+	print(np.isclose(yhat, yhat2))
+	assert np.all(np.isclose(yhat, yhat2))
 
 if __name__ == '__main__':
-	test_rational_ratio(MonomialPolynomialBasis)
+	test_rational_pole_residue()
+	#test_rational_ratio(MonomialPolynomialBasis)
 	#test_skfit_rebase()
 	#test_minimize_1_norm()
 	#test_skfit()

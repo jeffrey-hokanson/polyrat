@@ -33,13 +33,13 @@ def array_absolute_value(M, output_dim = ()):
 	return X.reshape(-1,1), Y
 
 
-def random_data(M, dim, complex_, seed ):
+def random_data(M, dim, complex_, seed, output_dim = ()):
 	np.random.seed(seed)
 	X = np.random.randn(M, dim)
-	y = np.random.randn(M)
+	y = np.random.randn(M, *output_dim)
 	if complex_:
 		X = X + 1j*np.random.randn(M, dim)
-		y = y + 1j*np.random.randn(M)
+		y = y + 1j*np.random.randn(M, *output_dim)
 
 	return X, y
 

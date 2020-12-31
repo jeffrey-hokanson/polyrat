@@ -6,9 +6,11 @@ from itertools import product
 import numpy as np
 import scipy.linalg
 from .aaa import _build_cauchy
-from .linratfit import linearized_ratfit 
+from .linratfit import LinearizedRationalApproximation 
+from .vecfit import VectorFittingRationalApproximation
 from .util import _zeros
 
+from iterprinter import IterationPrinter
 
 
 def _fit_f(Y, C, g):
@@ -167,10 +169,9 @@ def _fit_gh(Y, C, f):
 def eval_vecfit_rank(X, poles, f, g, h):
 	Y = np.zeros((X.shape[0], f.shape[1], g.shape[1]), dtype = np.complex)
 
-
 	denom = np.ones(X.shape[0], dtype = np.complex)
 	for k in range(len(poles)):
-		Y += np.einsum('i,jk->ijk', 1/(X[:,0] - poles[k]), np.outer(f[k], g[k].conj()))
+		Y += np.einsum('i,jk->ijk', 1./(X[:,0] - poles[k]), np.outer(f[k], g[k].conj()))
 		denom += h[k]/(X[:,0] - poles[k])
 
 	Y *= 1./denom[:,None, None]
@@ -178,8 +179,8 @@ def eval_vecfit_rank(X, poles, f, g, h):
 	return Y	
 
 def vecfit_rank(X, Y, num_degree, denom_degree, 
-	verbose = True, maxiter = 500, 
-	poles0 = 'linearized', ftol = 1e-10, btol = 1e-7):
+	verbose = True, maxiter = 500, ftol = 1e-10, btol = 1e-10,
+	poles0 = 'linearized', f = None, g = None):
 	r""" Vector fitting with a rank-one residue constraint
 
 	Parameters
@@ -193,57 +194,74 @@ def vecfit_rank(X, Y, num_degree, denom_degree,
 	assert X.shape[0] == Y.shape[0], "Dimension of input and output must match"
 	assert num_degree + 1 == denom_degree
 
-	# TODO: initial poles	
-	poles = poles0
+	M, p, m = Y.shape
 
-	f = np.random.randn(denom_degree,Y.shape[1])
-	g = np.random.randn(denom_degree,Y.shape[2])
-	h = np.zeros(len(poles))
-	#f = np.ones((denom_degree, Y.shape[1]))
-	#g = np.ones((denom_degree, Y.shape[2])) 
-	#g = 1 + np.random.randn(denom_degree,Y.shape[2])**2
+	if poles0 == 'linearized' or poles0 == 'vectorfit':
+		
+		# Use the linearized fit to construct an inital rational approximation
+		if poles0 == 'linearized':
+			rat = LinearizedRationalApproximation(num_degree, denom_degree)
+		elif poles0 == 'vectorfit':
+			rat = VectorFittingRationalApproximation(num_degree, denom_degree)
+
+		rat.fit(X, Y)
+		poles, residues = rat.pole_residue()
+
+		# Replace the residues with their rank-1 approximations
+		f = _zeros((denom_degree, p), X, Y, poles, residues)
+		g = _zeros((denom_degree, m), X, Y, poles, residues)
+		for k, R in enumerate(residues):
+			U, s, VH = scipy.linalg.svd(R, full_matrices = False)
+			f[k,:] = U[:,0]*np.sqrt(s[0])
+			g[k,:] = VH[0,:].conj()*np.sqrt(s[0])
+	else:
+		# Pull in the manual initialization
+		poles = np.array(poles0).flatten()
+		assert len(poles) == denom_degree, "Number of poles does not match the desired degree"
+		f = np.array(f)
+		assert f.shape == (denom_degree, p), f"f does not match target shape ({denom_degree}, {p})"
+		g = np.array(g)
+		assert g.shape == (denom_degree, m), f"g does not match target shape ({denom_degree}, {m})"
 	
-	Yfit = eval_vecfit_rank(X, poles, f, g, h) 
-	err1 = np.linalg.norm( (Y - Yfit).flatten())
-	print("initial", err1)
+	h = np.zeros(denom_degree)
 
-	C = _build_cauchy(X, poles)
-	for it in range(1):
-		f = _fit_f(Y, C, g)
+
+	if verbose:
+		printer = IterationPrinter(it = '4d', err = '20.14e', normh = '10.3e')
+		printer.print_header(it = 'iter', err = '2-norm mismatch', normh = 'max |h|∞')
+	
+	if verbose:
 		Yfit = eval_vecfit_rank(X, poles, f, g, h) 
-		err1 = np.linalg.norm( (Y - Yfit).flatten())
-		print("f update", err1)
-
-		g = _fit_g(Y, C, f)		
-		Yfit = eval_vecfit_rank(X, poles, f, g, h) 
-		err1 = np.linalg.norm( (Y - Yfit).flatten())
-		print("g update", err1)
-#		for k in range(len(poles)):
-#			print(np.outer(f[k], g[k]))
-
-
+		err0 = np.linalg.norm( (Y - Yfit).flatten())
+		printer.print_iter(err = err0)	
+	
 	for it in range(maxiter):
 
-		# Solve for f (left vectors in numerator)
 		C = _build_cauchy(X, poles)
-		#f, h = _fit_fh(Y, C, g)
-		#poles = np.linalg.eigvals(np.diag(poles) - np.outer(np.ones(len(poles)), h))
-		#C = _build_cauchy(X, poles)
+
+		# NOTE: I've removed some experimentation
+		# Currently this seems to diverge for real problems with non-zero residues
+	
+		# Solve for f (left vectors in numerator)
 		f = _fit_f(Y, C, g)
-		
 		# Solve for g (right vectors in numerator)
 		g, h = _fit_gh(Y, C, f)
+
+		# Rebalance f, g
+		for k in range(denom_degree):
+			fk_norm = np.linalg.norm(f[k])
+			gk_norm = np.linalg.norm(g[k])
+			
+			f[k] *= np.sqrt(gk_norm/fk_norm)
+			g[k] *= np.sqrt(fk_norm/gk_norm)
+	
+
 		Yfit = eval_vecfit_rank(X, poles, f, g, h) 
 		err = np.linalg.norm( (Y - Yfit).flatten())
 		poles = np.linalg.eigvals(np.diag(poles) - np.outer(np.ones(len(poles)), h))
 
-		print(f"\n------ iter {it} -------")
-		print("error", err)
-		print("h", np.abs(h))
+		if verbose:
+			printer.print_iter(it = it+1, err = err, normh = np.max(np.abs(h)) )
 
-		print("poles")
-		for p in poles[np.argsort(poles.imag)]:
-			print(p)
-
-		if np.max(np.abs(h)) < btol:
-			break
+		#if np.max(np.abs(h)) < btol:
+		#	break
