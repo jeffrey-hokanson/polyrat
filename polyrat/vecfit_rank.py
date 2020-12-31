@@ -13,6 +13,34 @@ from .util import _zeros
 from iterprinter import IterationPrinter
 
 
+def _fit_fgh(Y, C, f, g):
+	# For numerical experiments only; slow
+	import cvxpy as cp
+	M, p, m = Y.shape
+	r = C.shape[1]
+	
+	df = cp.Variable((r, p), complex = True)
+	dg = cp.Variable((r, m), complex = True)
+	h = cp.Variable((r,), complex = True)
+
+	obj = 0
+	Hr = [0 for i in range(C.shape[0])]
+	for i in range(M):
+		for k in range(r):
+			#Hrk = f[k:k+1].T @ g[k:k+1].conj() # 0th order
+			Hrk = f[k:k+1].T @ cp.conj(dg[k:k+1])
+			Hrk += df[k:k+1].T @ g[k:k+1].conj()
+			Hr[i] += Hrk*C[i,k]
+		obj += cp.sum_squares(Y[i]*(1 + C[i,:] @ h) - Hr[i])
+	
+	prob = cp.Problem(cp.Minimize(obj))
+	prob.solve(verbose = False, solver = 'OSQP',eps_abs = 1e-8, eps_rel = 1e-8)
+	#print('df', df.value)
+	#print('dg', dg.value)
+	fnew = df.value
+	gnew = dg.value
+	return fnew, gnew, h.value
+
 def _fit_f(Y, C, g):
 	r""" Find the left-hand side vectors only
 
@@ -178,10 +206,21 @@ def eval_vecfit_rank(X, poles, f, g, h):
 
 	return Y	
 
+
+
 def vecfit_rank(X, Y, num_degree, denom_degree, 
 	verbose = True, maxiter = 500, ftol = 1e-10, btol = 1e-10,
 	poles0 = 'linearized', f = None, g = None):
 	r""" Vector fitting with a rank-one residue constraint
+
+
+	Notes
+	-----
+	As of experiments on 31 Dec 2020, this iteration does not have the wonderful
+	convergence properties of standard vector fitting.
+	Sometimes this algorithm will converge, but in experiments with the ISS-1R model,
+	the fixed points are almost always worse approximations than simply running
+	vector fitting and then replacing the residues with their rank-one approximation. 
 
 	Parameters
 	----------
@@ -234,18 +273,27 @@ def vecfit_rank(X, Y, num_degree, denom_degree,
 		Yfit = eval_vecfit_rank(X, poles, f, g, h) 
 		err0 = np.linalg.norm( (Y - Yfit).flatten())
 		printer.print_iter(err = err0)	
+
+	def update_poles(poles, h):
+		return np.linalg.eigvals(np.diag(poles) - np.outer(np.ones(len(poles)), h))
+		
 	
 	for it in range(maxiter):
-
-		C = _build_cauchy(X, poles)
-
-		# NOTE: I've removed some experimentation
-		# Currently this seems to diverge for real problems with non-zero residues
-	
+		
 		# Solve for f (left vectors in numerator)
-		f = _fit_f(Y, C, g)
+		C = _build_cauchy(X, poles)
+		f, h = _fit_fh(Y, C, g)
+
 		# Solve for g (right vectors in numerator)
+		poles = update_poles(poles, h)
+		C = _build_cauchy(X, poles)
 		g, h = _fit_gh(Y, C, f)
+		#f, g, h = _fit_fgh(Y, C, f, g)
+		#print("f")
+		#print(f)
+		#print("g")
+		#print(g)
+		#print("h\n", h)
 
 		# Rebalance f, g
 		for k in range(denom_degree):
@@ -258,7 +306,7 @@ def vecfit_rank(X, Y, num_degree, denom_degree,
 
 		Yfit = eval_vecfit_rank(X, poles, f, g, h) 
 		err = np.linalg.norm( (Y - Yfit).flatten())
-		poles = np.linalg.eigvals(np.diag(poles) - np.outer(np.ones(len(poles)), h))
+		poles = update_poles(poles, h)
 
 		if verbose:
 			printer.print_iter(it = it+1, err = err, normh = np.max(np.abs(h)) )
