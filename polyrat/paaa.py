@@ -8,7 +8,7 @@ from copy import deepcopy as copy
 import scipy.linalg
 from iterprinter import IterationPrinter
 
-from .rational import RationalBarycentric
+from .aaa import RationalBarycentric
 
 def _build_cauchy(x,y):
 	with np.errstate(divide = 'ignore', invalid = 'ignore'):

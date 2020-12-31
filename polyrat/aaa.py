@@ -4,8 +4,7 @@ r""" Code for AAA rational approximation
 import numpy as np
 import scipy.linalg
 from iterprinter import IterationPrinter
-from .rational import RationalBarycentric
-
+from .rational import RationalFunction
 #def eval_barcentric(xeval, x, y, I, a, b):
 #	"""
 #	Parameters
@@ -58,7 +57,11 @@ def eval_aaa(xeval, x, y, I, b):
 
 
 def _build_cauchy(x,y):
-	return 1./(np.tile(x.reshape(-1,1), (1,len(y))) - np.tile(y.reshape(1,-1), (len(x),1)))
+	with np.errstate(divide = 'ignore'):
+		# FIXME: Properly handle divide by zeros in the Cauchy matrix
+		C = 1./(np.tile(x.reshape(-1,1), (1,len(y))) - np.tile(y.reshape(1,-1), (len(x),1)))
+		C[~np.isfinite(C)] = 1
+	return C
 
 def aaa(x, y, degree = None, tol = None, verbose = True):
 	r""" A vector-valued Adaptive Anderson-Antoulas implementation
@@ -122,6 +125,27 @@ def aaa(x, y, degree = None, tol = None, verbose = True):
 				break
 
 	return I, b 	
+
+class RationalBarycentric(RationalFunction):
+	r"""
+	"""
+	def __init__(self, degree):
+		self.degree = int(degree)
+		assert self.degree >= 0, "Degree must be non-negative"
+
+	@property
+	def num_degree(self):
+		return self.degree
+
+	@property
+	def denom_degree(self):
+		return self.degree
+
+	def poles(self):
+		raise NotImplementedError
+
+	def residues(self):
+		raise NotImplementedError
 
 class AAARationalApproximation(RationalBarycentric):
 	

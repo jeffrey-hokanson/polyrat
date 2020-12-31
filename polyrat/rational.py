@@ -24,6 +24,12 @@ class RationalFunction(abc.ABC):
 		"""
 		return self.__call__(X)
 
+	@abc.abstractmethod
+	def poles(self, *args, **kwargs):
+		r""" Poles of this rational function
+		"""
+		raise NotImplementedError
+
 class RationalApproximation(RationalFunction):
 	def __init__(self, num_degree, denom_degree):
 		self.num_degree = num_degree
@@ -74,8 +80,6 @@ class RationalRatio(RationalFunction):
 		q = self.denominator(X)
 		return np.multiply(1./q.reshape(-1, *[1 for i in p.shape[1:]]), p)
 
-
-
 	def refine(self, X, y, norm = 2, verbose = False, **kwargs):
 		r""" Refine the rational approximation using optimization
 
@@ -92,25 +96,23 @@ class RationalRatio(RationalFunction):
 		#	res_norm = np.linalg.norm( (self.P @ a)/(self.Q @ b) - y, norm)
 		#	print(f"final residual norm {res_norm:21.15e}")
 
+	def pole_residue(self, *args, **kwargs):
+		poles = self.denominator.roots(*args, **kwargs).flatten()
+		
+		residues = []
+		for k, x in enumerate(poles):
+			R = self.numerator(x.reshape(-1,1))/self.denominator.derivative(x.reshape(-1,1))
+			residues.append(R.reshape(self.a.shape[1:]))
 
+		residues = np.array(residues)
+			
+		return poles, residues	
+		
 
-class RationalBarycentric(RationalFunction):
-	r"""
-	"""
-	def __init__(self, degree):
-		self.degree = int(degree)
-		assert self.degree >= 0, "Degree must be non-negative"
+	def poles(self, *args, **kwargs):
+		return self.denominator.roots(*args, **kwargs)
 
-	@property
-	def num_degree(self):
-		return self.degree
-
-	@property
-	def denom_degree(self):
-		return self.degree
-
-
-
+		
 
 
 

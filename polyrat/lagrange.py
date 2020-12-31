@@ -173,6 +173,9 @@ class LagrangePolynomialBasis(PolynomialBasis):
 			np.prod(self.nodes[k] - self.nodes[0:k]) * np.prod(self.nodes[k] - self.nodes[k+1:]) for k in range(len(self.nodes))
 			])
 
+	@property
+	def dim(self):
+		return 1 
 
 	@cached_property
 	def vandermonde_X(self):
@@ -186,6 +189,7 @@ class LagrangePolynomialBasis(PolynomialBasis):
 	
 	def roots(self, coef, deflation = True):
 		return lagrange_roots(self.nodes, self.weights, coef, deflation = deflation)
+
 
 
 class LagrangePolynomialInterpolant(Polynomial):

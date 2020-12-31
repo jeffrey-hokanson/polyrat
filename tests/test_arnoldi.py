@@ -18,12 +18,16 @@ def test_arnoldi_roots(n):
 	# It is important that we sample at the roots to avoid the large
 	# values the Wilkinson polynomial takes away from these points.
 	X = np.arange(0, n+1, step = 0.1, dtype = np.float).reshape(-1,1)
-	y = wilkinson(X)
+	y = wilkinson(X).flatten()
+	
 	arn = PolynomialApproximation(n, Basis = ArnoldiPolynomialBasis)
 	arn.fit(X, y)
 	roots = arn.roots().flatten()
 	I = hungarian_sort(true_roots, roots)
 	roots = roots[I]	
+	print("true_roots", true_roots)
+	print("roots", roots)
+	print("value", arn(roots.reshape(-1,1)))
 	for tr, r, fr in zip(true_roots, roots, arn(roots.reshape(-1,1))):	
 		print(f'true root: {tr.real:+10.5e} {tr.imag:+10.5e}I \t root: {r.real:+10.5e} {r.imag:+10.5e} I \t abs fun value {np.abs(fr):10.5e}')
 
