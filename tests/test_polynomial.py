@@ -66,6 +66,55 @@ def test_approx(complex_, Basis, norm):
 	assert np.all(np.isclose(p(X), y2))	
 
 
+@pytest.mark.parametrize("Basis", 
+	[MonomialPolynomialBasis,
+	 LegendrePolynomialBasis,
+	 ChebyshevPolynomialBasis,
+	 HermitePolynomialBasis, 
+	 LaguerrePolynomialBasis,
+	 ArnoldiPolynomialBasis])
+@pytest.mark.parametrize("dim", [1,2])
+@pytest.mark.parametrize("output_dim", [None, 1, 3, (3,2)]) 
+def test_derivative(Basis, dim, output_dim):
+	np.random.seed(0)
+
+	N = 1000
+	degree = 5
+	X = np.random.randn(N,dim)
+	if output_dim is None:
+		y = np.random.randn(N)
+	else:
+		try:
+			y = np.random.randn(N, output_dim)
+		except TypeError:
+			y = np.random.randn(N, *output_dim)
+
+	poly = PolynomialApproximation(degree, Basis = Basis)
+	poly.fit(X, y)
+
+	Xhat = np.random.randn(5,dim)
+
+	D = poly.derivative(Xhat)
+	
+	h = 1e-6
+	for i in range(len(Xhat)):
+		for k in range(dim):
+			ek = np.eye(dim)[k]
+			x1 = (Xhat[i] + h*ek).reshape(1,-1)
+			x2 = (Xhat[i] - h*ek).reshape(1,-1)
+			dest = (poly(x1) - poly(x2))/(2*h)
+			print(f"point {i}, direction {k}")
+			print("finite difference")
+			print(dest)
+			print("nomial value")
+			print(D[i,...,k])
+			print('difference')
+			print(D[i,...,k] - dest)
+			assert np.all(np.isclose(dest, D[i,...,k], atol = 1e-4, rtol = 1e-4))
+
+
+
 if __name__ == '__main__':
-	test_approx(True, None, 1)
+	#test_approx(True, None, 1)
+	test_derivative(MonomialPolynomialBasis,2, (2,1))
 	 

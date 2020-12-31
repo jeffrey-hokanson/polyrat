@@ -24,6 +24,12 @@ class RationalFunction(abc.ABC):
 		"""
 		return self.__call__(X)
 
+	@abc.abstractmethod
+	def poles(self, *args, **kwargs):
+		r""" Poles of this rational function
+		"""
+		raise NotImplementedError
+
 class RationalApproximation(RationalFunction):
 	def __init__(self, num_degree, denom_degree):
 		self.num_degree = num_degree
@@ -92,6 +98,8 @@ class RationalRatio(RationalFunction):
 		#	res_norm = np.linalg.norm( (self.P @ a)/(self.Q @ b) - y, norm)
 		#	print(f"final residual norm {res_norm:21.15e}")
 
+	def poles(self, *args, **kwargs):
+		return self.denominator.roots(*args, **kwargs)
 
 
 class RationalBarycentric(RationalFunction):

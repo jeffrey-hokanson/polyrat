@@ -224,7 +224,6 @@ def test_fit_gh():
 	print(f"Error: g:{err_g}, h:{err_h}")
 	assert err_g < 1e-5
 	assert err_h < 1e-5
-	assert False	
 
 
 def test_vecfit_rank():

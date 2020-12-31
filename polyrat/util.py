@@ -6,6 +6,14 @@ from scipy.sparse.linalg import LinearOperator, svds
 import scipy.linalg
 
 
+def _zeros(size, *args):
+	r""" allocate a zeros matrix of the given size matching the type of the arguments
+	"""
+	if all([np.isrealobj(a) for a in args]):
+		return np.zeros(size, dtype = np.float)
+	else:
+		return np.zeros(size, dtype = np.complex)
+
 def linearized_ratfit_operator_dense(P, Q, Y):
 	r""" Dense analog of LinearizedRatfitOperator
 	"""

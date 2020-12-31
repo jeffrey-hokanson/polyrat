@@ -5,17 +5,10 @@ from itertools import product
 
 import numpy as np
 import scipy.linalg
-from .arnoldi import ArnoldiPolynomialBasis
 from .aaa import _build_cauchy
+from .linratfit import linearized_ratfit 
+from .util import _zeros
 
-
-def _zeros(size, *args):
-	r""" allocate a zeros matrix of the given size matching the type of the arguments
-	"""
-	if all([np.isrealobj(a) for a in args]):
-		return np.zeros(size, dtype = np.float)
-	else:
-		return np.zeros(size, dtype = np.complex)
 
 
 def _fit_f(Y, C, g):
@@ -185,12 +178,17 @@ def eval_vecfit_rank(X, poles, f, g, h):
 	return Y	
 
 def vecfit_rank(X, Y, num_degree, denom_degree, 
-	verbose = True, maxiter = 500, Basis = ArnoldiPolynomialBasis,
+	verbose = True, maxiter = 500, 
 	poles0 = 'linearized', ftol = 1e-10, btol = 1e-7):
-	r""" Vector fitting with a rank constraint
+	r""" Vector fitting with a rank-one residue constraint
+
+	Parameters
+	----------
+	X: array-like
+		
 	"""
 	
-	assert X.shape[1] == 1, "This only works with one-dimensional data"
+	assert X.shape[1] == 1, "This only works with univariate data"
 	assert len(Y.shape) == 3
 	assert X.shape[0] == Y.shape[0], "Dimension of input and output must match"
 	assert num_degree + 1 == denom_degree
