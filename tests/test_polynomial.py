@@ -31,7 +31,7 @@ def test_wilkinson_roots(Basis, n):
 	# It is important that we sample at the roots to avoid the large
 	# values the Wilkinson polynomial takes away from these points.
 	X = np.arange(0, n+1, step = 0.1, dtype = np.float).reshape(-1,1)
-	y = wilkinson(X)
+	y = wilkinson(X).flatten()
 	poly = PolynomialApproximation(n, Basis = Basis)
 	poly.fit(X, y)
 	roots = poly.roots().flatten()

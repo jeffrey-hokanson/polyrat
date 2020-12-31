@@ -246,10 +246,10 @@ class ArnoldiPolynomialBasis(PolynomialBasis):
 	def roots(self, coef, *args, **kwargs):
 		from .basis import LegendrePolynomialBasis
 		from .polynomial import PolynomialApproximation
-		y = self.vandermonde_X @ coef
+		y = (self.vandermonde_X @ coef).flatten()
 		poly = PolynomialApproximation(self.degree, Basis = LegendrePolynomialBasis)
 		poly.fit(self.X, y)
-		roots = poly.roots()
+		roots = poly.roots().flatten()
 		
 		return roots
 

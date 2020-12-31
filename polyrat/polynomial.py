@@ -35,19 +35,18 @@ class Polynomial:
 	def derivative(self, X):
 		r""" Compute the derivative 
 		"""
-		print("coef", self.coef.shape)
-		print("der", self.basis.vandermonde_derivative(X).shape)
 		return np.einsum('ijk,j...->i...k', self.basis.vandermonde_derivative(X), self.coef)
 
-	def roots(self, *args, **kwargs): 
-		return self.basis.roots(self.coef, *args, **kwargs)	
+	def roots(self, *args, **kwargs):
+		assert self.basis.dim == 1, "Must have a single variable as input"
+		assert np.prod(self.coef[0].shape) == 1, "Must have one dimensional output"
+		return self.basis.roots(self.coef.reshape(-1), *args, **kwargs)	
 
 
 def _polynomial_fit_least_squares(P, Y, P_orth = False):
 	M, m = P.shape
 	
 	coef = _zeros((P.shape[1], *Y.shape[1:]), P, Y)
-	print("coef", coef.shape)
 
 	if P_orth:
 		for j, idx in enumerate(np.ndindex(Y.shape[1:])):

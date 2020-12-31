@@ -117,7 +117,8 @@ class RationalBarycentric(RationalFunction):
 	def denom_degree(self):
 		return self.degree
 
-
+	def poles(self):
+		raise NotImplementedError
 
 
 
