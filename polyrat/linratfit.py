@@ -11,7 +11,7 @@ from .polynomial import Polynomial
 from .util import minimize_2norm_varpro, minimize_2norm_dense
 
 
-def linearized_ratfit(X, y, num_degree, denom_degree, Basis = ArnoldiPolynomialBasis, simultaneous = True):
+def linearized_ratfit(X, y, num_degree, denom_degree, Basis = ArnoldiPolynomialBasis, simultaneous = True, weight = None):
 	r"""Construct a rational approximation by multiplying through by the denominator.
 
 
@@ -84,7 +84,7 @@ def linearized_ratfit(X, y, num_degree, denom_degree, Basis = ArnoldiPolynomialB
 
 	if simultaneous:
 		P_orth = (Basis == ArnoldiPolynomialBasis)
-		a, b, cond = minimize_2norm_varpro(P, Q, y, P_orth = P_orth )
+		a, b, cond = minimize_2norm_varpro(P, Q, y, P_orth = P_orth, weight = weight )
 	else:
 		a, b, cond = minimize_2norm_dense(P, Q, y) 
 
@@ -135,5 +135,5 @@ class LinearizedRationalApproximation(RationalApproximation, RationalRatio):
 		RationalApproximation.__init__(self, num_degree, denom_degree)
 		self.kwargs = kwargs
 
-	def fit(self, X, y):
-		self.numerator, self.denominator = linearized_ratfit(X, y, self.num_degree, self.denom_degree, **self.kwargs)
+	def fit(self, X, y, weight = None):
+		self.numerator, self.denominator = linearized_ratfit(X, y, self.num_degree, self.denom_degree, weight = weight, **self.kwargs)

@@ -8,7 +8,7 @@ from .basis import *
 from .arnoldi import *
 from .polynomial import *
 from .rational import *
-from .util import minimize_2norm_dense, minimize_2norm_varpro 
+from .util import minimize_2norm_dense, minimize_2norm_varpro, _norm 
 from iterprinter import IterationPrinter
 
 
@@ -161,7 +161,8 @@ def _minimize_1_norm(A):
 		
 
 
-def skfit(y, P, Q, maxiter = 20, verbose = True, history = False, denom0 = None, norm = 2, xtol = 1e-7):
+def skfit(y, P, Q, maxiter = 20, verbose = True, history = False, denom0 = None, norm = 2, xtol = 1e-7,
+	weight = None):
 	r"""
 
 
@@ -207,7 +208,7 @@ def skfit(y, P, Q, maxiter = 20, verbose = True, history = False, denom0 = None,
 			dP = np.multiply((1./denom)[:,None], P)
 			dQ = np.multiply((1./denom)[:,None], Q)
 
-			a, b, cond = minimize_2norm_varpro(dP, dQ, y)
+			a, b, cond = minimize_2norm_varpro(dP, dQ, y, weight = weight)
 			
 			Pa = np.einsum('ij,j...->i...', P, a)
 			Qb = Q @ b
@@ -227,7 +228,7 @@ def skfit(y, P, Q, maxiter = 20, verbose = True, history = False, denom0 = None,
 			Qb = Q @ b
 			fit = Pa/Qb
 
-		res_norm = np.linalg.norm( (y - fit).flatten(), norm)
+		res_norm = _norm(weight, y - fit)
 
 		if res_norm < best_res_norm:
 			best_res_norm = res_norm
@@ -281,7 +282,7 @@ class SKRationalApproximation(RationalApproximation, RationalRatio):
 		self.numerator = None
 		self.denominator = None
 
-	def fit(self, X, y, denom0 = None):
+	def fit(self, X, y, denom0 = None, weight = None):
 		X = np.array(X)
 		y = np.array(y)
 		assert X.shape[0] == y.shape[0], "X and y do not have the same number of rows"
@@ -292,7 +293,7 @@ class SKRationalApproximation(RationalApproximation, RationalRatio):
 		Q = denom_basis.vandermonde_X
 	
 		a, b, self.hist = skfit(y, P, Q, maxiter = self.maxiter, verbose = self.verbose, norm = self.norm, history = True, 
-			xtol = self.xtol, denom0 = denom0)
+			xtol = self.xtol, denom0 = denom0, weight = weight)
 
 		self.numerator = Polynomial(num_basis, a)
 		self.denominator = Polynomial(denom_basis, b)

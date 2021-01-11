@@ -5,6 +5,25 @@ import numpy as np
 from scipy.sparse.linalg import LinearOperator, svds
 import scipy.linalg
 
+from scipy.sparse.linalg import LinearOperator
+
+def _identity(n):
+	return LinearOperator((n,n), matvec = lambda x: x, matmat = lambda x: x, rmatvec = lambda x: x, rmatmat = lambda x:x )
+
+
+def _norm(weight, x):
+	r""" Evaluate the Frobenius norm where weight is applied to each x[:,*idx]
+	"""
+	M = x.shape[0]
+	if weight is None:
+		weight = _identity(M)
+
+	norm = 0.
+	for idx in np.ndindex(x.shape[1:]):
+		norm += np.sum( np.abs(weight @ x[(slice(M), *idx)])**2)
+
+	return np.sqrt(norm)
+
 
 def _zeros(size, *args):
 	r""" allocate a zeros matrix of the given size matching the type of the arguments
@@ -14,18 +33,20 @@ def _zeros(size, *args):
 	else:
 		return np.zeros(size, dtype = np.complex)
 
-def linearized_ratfit_operator_dense(P, Q, Y):
+def linearized_ratfit_operator_dense(P, Q, Y, weight = None):
 	r""" Dense analog of LinearizedRatfitOperator
 	"""
 	nout = int(np.prod(Y.shape[1:]))
+	if weight is None:
+		weight = _identity(Y.shape[0])
 
 	M = P.shape[0]
-	A = np.kron(np.eye(nout), P)
+	A = np.kron(np.eye(nout), weight @ P)
 	if nout == 1:
-		At = -np.multiply(Y.reshape(-1,1), Q)
+		At = -weight @ np.multiply(Y.reshape(-1,1), Q)
 	else:
 		At = np.vstack([
-			-np.multiply(Y[(slice(M),*idx)].reshape(-1,1), Q)
+			-weight @ np.multiply(Y[(slice(M),*idx)].reshape(-1,1), Q)
 			for idx in np.ndindex(Y.shape[1:])
 			])
 		
@@ -33,8 +54,8 @@ def linearized_ratfit_operator_dense(P, Q, Y):
 	return A
 
 
-def minimize_2norm_dense(P, Q, Y):
-	A = linearized_ratfit_operator_dense(P, Q, Y)
+def minimize_2norm_dense(P, Q, Y, weight = None):
+	A = linearized_ratfit_operator_dense(P, Q, Y, weight = weight)
 	U, s, VH = scipy.linalg.svd(A, full_matrices = False, overwrite_a = True)
 		
 	# Condition number of singular vectors, cf. Stewart 01: Eq. 3.16
@@ -49,7 +70,7 @@ def minimize_2norm_dense(P, Q, Y):
 		a[(slice(m),*idx)] = x[j*m:(j+1)*m]
 	return a, b, cond
 
-def minimize_2norm_varpro(P, Q, Y, P_orth = False, method = 'svd'):
+def minimize_2norm_varpro(P, Q, Y, P_orth = False, method = 'svd', weight = None):
 	r"""
 
 	Parameters
@@ -64,21 +85,26 @@ def minimize_2norm_varpro(P, Q, Y, P_orth = False, method = 'svd'):
 	m = P.shape[1]
 	n = Q.shape[1]
 	nout = int(np.prod(Y.shape[1:]))
+	if weight is None:
+		weight = _identity(M)
+	else:
+		P_orth = False
+
 	if P_orth:
 		Q_P = P
 	else:
-		Q_P, R_P = np.linalg.qr(P, mode = 'reduced')
+		Q_P, R_P = np.linalg.qr(weight @ P, mode = 'reduced')
 	
 
 	# Form the matrix 
 	# [P P^* - I] diag(y) Q
 	if nout == 1:
-		A = np.multiply(Y.reshape(-1,1), Q)
+		A = weight @ np.multiply(Y.reshape(-1,1), Q)
 		A -= Q_P @ (Q_P.conj().T @ A)
 	else:
 		A = []
 		for idx in np.ndindex(Y.shape[1:]):
-			At = np.multiply(Y[(slice(M),*idx)].reshape(-1,1), Q)
+			At = weight @ np.multiply(Y[(slice(M),*idx)].reshape(-1,1), Q)
 			A.append(At - Q_P @ (Q_P.conj().T @ At))
 		A = np.vstack(A)	
 
@@ -98,7 +124,7 @@ def minimize_2norm_varpro(P, Q, Y, P_orth = False, method = 'svd'):
 	a = np.zeros((m, *Y.shape[1:]), dtype = b.dtype)
 	Qb = Q @ b
 	for j, idx in enumerate(np.ndindex(Y.shape[1:])):
-		x = Q_P.conj().T @ (Y[(slice(M),*idx)] * Qb)
+		x = Q_P.conj().T @ (weight @ (Y[(slice(M),*idx)] * Qb))
 		if P_orth:
 			a[(slice(m),*idx)] = x
 		else:	

@@ -9,12 +9,12 @@ from .skiter import _minimize_2_norm, _minimize_inf_norm
 from .arnoldi import *
 from .rational import *
 
-from .util import minimize_2norm_varpro 
+from .util import minimize_2norm_varpro, _norm 
 
 
 
 def skfit_stabilized(X, y, num_degree, denom_degree, maxiter = 20, verbose = True, 
-	xtol = 1e-7, history = False, denom0 = None, norm = 2):
+	xtol = 1e-7, history = False, denom0 = None, norm = 2, weight = None):
 	r""" The Stabilized Sanathanan-Koerner Iteration
 
 
@@ -68,7 +68,7 @@ def skfit_stabilized(X, y, num_degree, denom_degree, maxiter = 20, verbose = Tru
 			Q = denom_basis.vandermonde_X
 			
 			if np.isclose(norm, 2):
-				a, b, cond = minimize_2norm_varpro(P, Q, y)
+				a, b, cond = minimize_2norm_varpro(P, Q, y, weight = weight)
 			else:		
 				A = np.hstack([P, np.multiply(-y[:,None], Q) ])
 				x, cond = linearized_solution(A)
@@ -81,8 +81,8 @@ def skfit_stabilized(X, y, num_degree, denom_degree, maxiter = 20, verbose = Tru
 			#fit = Pa/Qb
 			fit = np.multiply(1./Qb.reshape(-1, *([1,]*nout_dim)), Pa)
 
-			delta_fit = np.linalg.norm( (fit - fit_old).flatten(), norm)		
-			res_norm = np.linalg.norm( (fit - y).flatten(), norm)
+			delta_fit = _norm(weight, fit - fit_old)		
+			res_norm = _norm(weight, fit - y)
 		
 		except (LinAlgError) as e:
 			if verbose: print(e)
@@ -136,7 +136,7 @@ class StabilizedSKRationalApproximation(RationalApproximation, RationalRatio):
 		self.numerator = None
 		self.denominator = None
 
-	def fit(self, X, y, denom0 = None):
+	def fit(self, X, y, denom0 = None, weight = None):
 		X = np.array(X)
 		y = np.array(y)
 		assert X.shape[0] == y.shape[0], "X and y do not have the same number of rows"
@@ -144,6 +144,6 @@ class StabilizedSKRationalApproximation(RationalApproximation, RationalRatio):
 		self.numerator, self.denominator, self.hist = skfit_stabilized(
 			X, y, self.num_degree, self.denom_degree,
 			maxiter = self.maxiter, verbose = self.verbose, norm = self.norm,
-			history = True, xtol = self.xtol, denom0 = denom0,
+			history = True, xtol = self.xtol, denom0 = denom0, weight = weight,
 			)
 		

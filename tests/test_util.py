@@ -45,7 +45,8 @@ def test_linearized(output_dim, complex_):
 @pytest.mark.parametrize("complex_", [True, False])
 @pytest.mark.parametrize("method", ['dense', 'varpro', 'varpro-ls'])
 @pytest.mark.parametrize("Basis", [LegendrePolynomialBasis, ArnoldiPolynomialBasis])
-def test_minimize_2norm_exact(output_dim, complex_, method, Basis):
+@pytest.mark.parametrize("weight", [False, True])
+def test_minimize_2norm_exact(output_dim, complex_, method, Basis, weight):
 	np.random.seed(0)
 	#complex_ = True
 	M = 100
@@ -54,6 +55,12 @@ def test_minimize_2norm_exact(output_dim, complex_, method, Basis):
 		X = np.random.randn(M, 1) + 1j * np.random.randn(M, 1)
 	else:
 		X = np.random.randn(M, 1)
+
+	if weight:
+		A = np.random.randn(M,M)
+		weight = np.eye(M) + A.T @ A
+	else:
+		weight = None
 
 	num_basis = Basis(X, 4)
 	P = num_basis.vandermonde_X
@@ -72,7 +79,7 @@ def test_minimize_2norm_exact(output_dim, complex_, method, Basis):
 	#Y += 1e-3*np.random.randn(*Y.shape)
 
 	if method == 'dense':
-		a, b, cond = minimize_2norm_dense(P, Q, Y)
+		a, b, cond = minimize_2norm_dense(P, Q, Y, weight)
 	elif method == 'sparse':
 		a, b, cond = minimize_2norm_sparse(P, Q, Y)
 	elif method == 'varpro' or method == 'varpro-ls':
@@ -82,9 +89,9 @@ def test_minimize_2norm_exact(output_dim, complex_, method, Basis):
 			method = 'svd'
 
 		if Basis == ArnoldiPolynomialBasis:	
-			a, b, cond = minimize_2norm_varpro(P, Q, Y, P_orth = True, method = method)
+			a, b, cond = minimize_2norm_varpro(P, Q, Y, P_orth = True, method = method, weight = weight)
 		else:
-			a, b, cond = minimize_2norm_varpro(P, Q, Y, P_orth = False, method = method)
+			a, b, cond = minimize_2norm_varpro(P, Q, Y, P_orth = False, method = method, weight = weight)
 
 	else:
 		raise NotImplementedError
@@ -106,7 +113,13 @@ def test_minimize_2norm_exact(output_dim, complex_, method, Basis):
 	print("Fit error (abs norm)", err_abs)
 	err2 = np.linalg.norm( (rat(X) - Y).flatten(), 2)
 	print("fit error (2 norm)", err2)
-	assert err_abs < 1e-10
+	if weight is None:
+		assert err_abs < 1e-10
+	else:
+		assert err_abs < 1e-8
+
+
+
 
 if __name__ == '__main__':
 	test_minimize_2norm_exact((3,2), False, 'varpro-ls', LegendrePolynomialBasis)

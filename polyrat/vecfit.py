@@ -10,7 +10,7 @@ from .rational import RationalFunction, RationalRatio
 from iterprinter import IterationPrinter
 import scipy.linalg
 
-from .util import minimize_2norm_varpro, minimize_2norm_dense
+from .util import minimize_2norm_varpro, minimize_2norm_dense, _norm
 
 
 def _solve_linearized_vecfit(num_basis, denom_basis, y):
@@ -27,7 +27,7 @@ def _solve_linearized_vecfit(num_basis, denom_basis, y):
 
 def vecfit(X, y, num_degree, denom_degree, verbose = True, 
 	Basis = ArnoldiPolynomialBasis, poles0 = 'linearized',
-	maxiter = 50, ftol = 1e-10, btol = 1e-7):
+	maxiter = 50, ftol = 1e-10, btol = 1e-7, weight = None):
 	r"""Implements Vector Fitting 
 	
 	See: GS99
@@ -88,7 +88,7 @@ def vecfit(X, y, num_degree, denom_degree, verbose = True,
 		denom_basis = np.hstack([np.ones((len(X), 1)), C])
 
 		#a, b, cond = _solve_linearized_vecfit(num_basis, denom_basis, y)
-		a, b, cond = minimize_2norm_varpro(num_basis, denom_basis, y, P_orth = False, method = 'ls')
+		a, b, cond = minimize_2norm_varpro(num_basis, denom_basis, y, P_orth = False, method = 'ls', weight = weight)
 		b_norm = b[0] #np.linalg.norm(b)
 		b /= b_norm
 		a /= b_norm
@@ -98,8 +98,8 @@ def vecfit(X, y, num_degree, denom_degree, verbose = True,
 		Qb = denom_basis @ b
 		r = np.multiply(1./Qb.reshape(-1, *([1,]*nout_dim)), Pa)
 
-		residual_norm = np.linalg.norm( (y - r).flatten(), 2)
-		delta_norm = np.linalg.norm( (r_old - r).flatten(), 2)
+		residual_norm = _norm(weight, y - r) #np.linalg.norm( (y - r).flatten(), 2)
+		delta_norm = _norm(weight, r_old - r) #np.linalg.norm( (r_old - r).flatten(), 2)
 		b_norm = np.linalg.norm(b[1:]/b[0], np.inf)
 
 		if residual_norm < best_fit['residual_norm']:
@@ -173,7 +173,8 @@ class VectorFittingRationalApproximation(VectorFittingRationalFunction):
 		self.args = args
 		self.kwargs = kwargs
 	
-	def fit(self, X, y):
-		self._a, self._b, self.poles, self.bonus_poly = vecfit(X, y, self.num_degree, self.denom_degree, *self.args, **self.kwargs)
+	def fit(self, X, y, weight = None):
+		self._a, self._b, self.poles, self.bonus_poly = vecfit(X, y, self.num_degree, self.denom_degree,
+			 *self.args, weight = weight, **self.kwargs)
 
 	
