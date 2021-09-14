@@ -45,7 +45,7 @@ class PolynomialBasis(abc.ABC):
 			self._indices = total_degree_index(self.dim, degree)
 			self._mode = 'total'
 		except (TypeError, ValueError):
-			self._degree = np.copy(degree).astype(np.int)
+			self._degree = np.copy(degree).astype(int)
 			self._degree.flags.writeable = False
 			assert len(self.degree) == self.dim, "maximum degree does not match the input dimension"
 			self._indices = max_degree_index(self.degree)

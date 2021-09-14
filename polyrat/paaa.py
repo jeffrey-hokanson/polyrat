@@ -48,7 +48,7 @@ def paaa(X, y, verbose = True, maxiter = 100, tol = None):
 	d = X.shape[1]
 	r = np.zeros(y.shape)
 
-	degree = np.zeros(d, dtype = np.int)
+	degree = np.zeros(d, dtype = int)
 
 
 	if verbose:
@@ -56,7 +56,7 @@ def paaa(X, y, verbose = True, maxiter = 100, tol = None):
 		printer.print_header(it = 'iter', degree = 'degree', norm = 'norm mismatch', cond = 'cond #')
 		printer.print_iter(norm = np.linalg.norm(y))
 	# indices of points where we interpolate
-	I = np.zeros(y.shape[0], dtype = np.bool)
+	I = np.zeros(y.shape[0], dtype = bool)
 
 	
 	mismatch = np.copy(y)
@@ -73,7 +73,7 @@ def paaa(X, y, verbose = True, maxiter = 100, tol = None):
 		
 		# determine points in tensor-product barycentric basis
 		basis = [np.array(list(set(X[I,i]))).reshape(-1) for i in range(d)]
-		degree = np.array([len(b)-1 for b in basis], dtype = np.int)
+		degree = np.array([len(b)-1 for b in basis], dtype = int)
 
 		# With this algorithm we need to "complete the square"
 		# by adding all terms of the form
@@ -140,7 +140,7 @@ class ParametricAAARationalApproximation(RationalBarycentric):
 		self.X = np.copy(X)
 		self.y = np.copy(y)
 		self._I, self._b, self._basis, self._order = paaa(X, y, verbose = self.verbose, maxiter = self.maxiter)
-		self.degree = np.array([len(bi)-1 for bi in self._basis], dtype = np.int)	
+		self.degree = np.array([len(bi)-1 for bi in self._basis], dtype = int)	
 
 
 	def __call__(self, X):

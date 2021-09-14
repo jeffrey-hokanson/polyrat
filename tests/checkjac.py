@@ -10,7 +10,7 @@ def check_jacobian(x, residual, jacobian, h = 2e-7, relative = False):
 	print("Jacobian condition number", np.linalg.cond(J))
 
 	for i in range(n):
-		ei = np.zeros(x.shape, dtype = np.float)
+		ei = np.zeros(x.shape, dtype = float)
 		ei[i]= 1.		
 			
 		x1 = x + ei * h

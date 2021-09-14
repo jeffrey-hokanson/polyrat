@@ -6,14 +6,14 @@ def fixed_degree_index(dim, degree):
 	r""" Generate all combinations where sum == degree
 	"""
 	if dim == 1:
-		return np.array([[degree]]).astype(np.int)
+		return np.array([[degree]]).astype(int)
 	else:
 		idx = fixed_degree_index(dim - 1, degree)
-		idx = np.hstack([np.zeros((idx.shape[0],1), dtype = np.int), idx])
+		idx = np.hstack([np.zeros((idx.shape[0],1), dtype = int), idx])
 		indices = [idx]
 		for i in range(1, degree+1):
 			idx = fixed_degree_index(dim - 1, degree - i) 
-			idx = np.hstack([i*np.ones((idx.shape[0],1), dtype = np.int), idx])
+			idx = np.hstack([i*np.ones((idx.shape[0],1), dtype = int), idx])
 			indices.append(idx)
 		return np.vstack(indices)
 

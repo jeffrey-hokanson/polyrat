@@ -29,9 +29,9 @@ def _zeros(size, *args):
 	r""" allocate a zeros matrix of the given size matching the type of the arguments
 	"""
 	if all([np.isrealobj(a) for a in args]):
-		return np.zeros(size, dtype = np.float)
+		return np.zeros(size, dtype = float)
 	else:
-		return np.zeros(size, dtype = np.complex)
+		return np.zeros(size, dtype = complex)
 
 def linearized_ratfit_operator_dense(P, Q, Y, weight = None):
 	r""" Dense analog of LinearizedRatfitOperator
@@ -207,9 +207,9 @@ class LinearizedRatfitOperator(LinearOperator):
 				np.iscomplexobj(self.Q), 
 				np.iscomplexobj(self.Y),
 				np.iscomplexobj(X)]):
-			Z = np.zeros((self.shape[0], X.shape[1]), dtype = np.complex)
+			Z = np.zeros((self.shape[0], X.shape[1]), dtype = complex)
 		else:
-			Z = np.zeros((self.shape[0], X.shape[1]), dtype = np.float)
+			Z = np.zeros((self.shape[0], X.shape[1]), dtype = float)
 		
 		M = self.Y.shape[0]
 		m = self.P.shape[1]
@@ -229,9 +229,9 @@ class LinearizedRatfitOperator(LinearOperator):
 				np.iscomplexobj(self.Q), 
 				np.iscomplexobj(self.Y),
 				np.iscomplexobj(X)]):
-			Z = np.zeros((self.shape[1], X.shape[1]), dtype = np.complex)
+			Z = np.zeros((self.shape[1], X.shape[1]), dtype = complex)
 		else:
-			Z = np.zeros((self.shape[1], X.shape[1]), dtype = np.float)
+			Z = np.zeros((self.shape[1], X.shape[1]), dtype = float)
 
 
 		M = self.Y.shape[0]

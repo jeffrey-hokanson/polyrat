@@ -41,7 +41,7 @@ def test_rational_pole_residue():
 	poles, residues = rat.pole_residue()
 	xhat = X[0:1]
 	yhat = rat(xhat)
-	yhat2 = np.zeros(yhat.shape, dtype = np.complex)
+	yhat2 = np.zeros(yhat.shape, dtype = complex)
 	for lam, R in zip(poles, residues):
 		yhat2 += R/(xhat.flatten() - lam)
 

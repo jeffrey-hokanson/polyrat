@@ -32,7 +32,7 @@ def penzl(X):
 	A3 = np.array([[-1, 400], [-400,-1]])
 	A4 = -np.diag(np.arange(1, 1001))
 
-	H = np.zeros(len(X), dtype = np.complex)
+	H = np.zeros(len(X), dtype = complex)
 	for i, x in enumerate(X):
 		z = x[0]
 

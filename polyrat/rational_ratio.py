@@ -51,7 +51,7 @@ def _rational_jacobian_complex(x, P, Q):
 			np.multiply((1./Qb)[:,None], P),				
 			np.multiply(-(Pa/Qb**2)[:,None], Q),
 		])
-	JRI = np.zeros((J.shape[0]*2, J.shape[1]*2), dtype = np.float)
+	JRI = np.zeros((J.shape[0]*2, J.shape[1]*2), dtype = float)
 	JRI[0::2,0::2] = J.real
 	JRI[1::2,1::2] = J.real
 	JRI[0::2,1::2] = -J.imag
@@ -69,7 +69,7 @@ def _rational_ratio_optimize_pin_2norm_real(y, P, Q, a0, b0, **kwargs):
 	x0 = np.hstack([a0, b0[:k], b0[k+1:]])
 	xfun = lambda x: np.hstack([x[:m+k], b0[k], x[m+k:]])
 	
-	mask = np.ones(m+n, dtype = np.bool)
+	mask = np.ones(m+n, dtype = bool)
 	mask[m+k] = 0
 	res = lambda x: _rational_residual_real(xfun(x), P, Q, y)
 	jac = lambda x: _rational_jacobian_real(xfun(x), P, Q)[:,mask]
@@ -85,7 +85,7 @@ def _rational_ratio_optimize_pin_2norm_complex(y, P, Q, a0, b0, **kwargs):
 	x0 = np.hstack([a0, b0[:k], b0[k+1:]])
 	xfun = lambda x: np.hstack([x[:2*(m+k)], b0[k].real, b0[k].imag, x[2*(m+k):]])
 	
-	mask = np.ones(2*(m+n), dtype = np.bool)
+	mask = np.ones(2*(m+n), dtype = bool)
 	mask[2*(m+k):2*(m+k)+2] = 0
 	res = lambda x: _rational_residual_complex(xfun(x), P, Q, y)
 	jac = lambda x: _rational_jacobian_complex(xfun(x), P, Q)[:,mask]
@@ -197,10 +197,10 @@ def rational_ratio_optimize(y, P, Q, a0, b0, norm = 2, **kwargs):
 
 
 	if not isreal:
-		x0 = x0.astype(np.complex)
-		P = P.astype(np.complex)
-		Q = Q.astype(np.complex)
-		y = y.astype(np.complex)	
+		x0 = x0.astype(complex)
+		P = P.astype(complex)
+		Q = Q.astype(complex)
+		y = y.astype(complex)	
 	
 	if isreal and norm == 2:
 		return _rational_ratio_optimize_pin_2norm_real(y, P, Q, a0, b0, **kwargs)

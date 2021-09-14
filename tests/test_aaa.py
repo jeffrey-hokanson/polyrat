@@ -31,7 +31,7 @@ def test_eval_aaa():
 
 	xeval = np.linspace(-1,1, 2*M).reshape(-1,1)
 
-	I = np.zeros(M, dtype = np.bool)
+	I = np.zeros(M, dtype = bool)
 	I[0] = 1
 	I[5] = 1
 	I[10] = 1

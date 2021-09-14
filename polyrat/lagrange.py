@@ -45,11 +45,11 @@ def lagrange_roots(nodes, weights, coef, deflation = True):
 
 	
 	# Build the RHS of the generalized eigenvalue problem
-	C0 = np.zeros((n+1, n+1), dtype=np.complex)
+	C0 = np.zeros((n+1, n+1), dtype=complex)
 	C0[1:n+1,1:n+1] = np.diag(nodes)
 
 	# LHS for generalized eigenvalue problem	
-	C1 = np.eye(n+1, dtype=np.complex)
+	C1 = np.eye(n+1, dtype=complex)
 	C1[0, 0] = 0
 
 	# scaling

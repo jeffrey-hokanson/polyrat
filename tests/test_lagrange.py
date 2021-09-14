@@ -18,7 +18,7 @@ def test_wilkinson(n, ang, deflate):
 
 	true_roots = ang* np.arange(1, n+1)
 	def wilkinson(x):
-		value = np.zeros(x.shape, dtype = np.complex)
+		value = np.zeros(x.shape, dtype = complex)
 		for i, xi in enumerate(x):
 			value[i] = np.prod(xi - true_roots)
 		return value

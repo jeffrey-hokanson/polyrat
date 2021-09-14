@@ -10,14 +10,14 @@ def test_arnoldi_roots(n):
 	true_roots = np.arange(1, n+1)
 
 	def wilkinson(x):
-		value = np.zeros(x.shape, dtype = np.complex)
+		value = np.zeros(x.shape, dtype = complex)
 		for i, xi in enumerate(x):
 			value[i] = np.prod(xi - true_roots)
 		return value
 
 	# It is important that we sample at the roots to avoid the large
 	# values the Wilkinson polynomial takes away from these points.
-	X = np.arange(0, n+1, step = 0.1, dtype = np.float).reshape(-1,1)
+	X = np.arange(0, n+1, step = 0.1, dtype = float).reshape(-1,1)
 	y = wilkinson(X).flatten()
 	
 	arn = PolynomialApproximation(n, Basis = ArnoldiPolynomialBasis)

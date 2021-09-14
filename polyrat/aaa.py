@@ -81,7 +81,7 @@ def aaa(x, y, degree = None, tol = None, verbose = True):
 
 
 	mismatch = y
-	I = np.zeros(len(y), dtype = np.bool)	# Index of x values used as barycentric nodes 
+	I = np.zeros(len(y), dtype = bool)	# Index of x values used as barycentric nodes 
 
 	if verbose:
 		printer = IterationPrinter(it = '4d', res = '20.16e', cond = '8.3e')
