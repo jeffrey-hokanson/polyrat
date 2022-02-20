@@ -78,6 +78,24 @@ class NonlinearEqualityConstraint(Constraint):
 			return self._hess_vec(x, z)
 		raise NotImplementedError
 
+	def orthogonal_nullspace(self, A):
+		r""" Compute the nullspace of the constraint linearization
+
+		Parameters
+		----------
+		A: np.ndarray
+			Existing value of linearized constraints; i.e., A = self.jac(x)
+		"""
+		# This is copied from the SciPy implementation (but using numpy to avoid dependency) 
+		u, s, vh = np.linalg.svd(A, full_matrices=True)
+		M, N = u.shape[0], vh.shape[1]
+		rcond = np.finfo(s.dtype).eps * max(M, N)
+		tol = np.amax(s) * rcond
+		num = np.sum(s > tol, dtype=int)
+		Q = vh[num:,:].T.conj()
+		return Q
+
+
 class Objective(abc.ABC):
 	def __init__(self, fun, jac = None, hess = None):
 		self._fun = fun
@@ -183,57 +201,10 @@ class EqualitySQP(abc.ABC):
 	def check_termination(self, norm_lagrangian_grad, norm_h, norm_Ah):
 		if ((norm_lagrangian_grad < self.tol_opt) and (norm_h < self.tol_h)):
 			raise OptimalTermination
-#		if (norm_h < self.tol_h) and (norm_Ah < self.tol_Ah * min(norm_h, 1)):
-#			raise FritzJohnPoint
+		if (norm_h < self.tol_h) and (norm_Ah < self.tol_Ah * min(norm_h, 1)):
+			raise FritzJohnPoint
 #		if (norm_h > self.tol_h) and (norm_Ah < self.tol_Ah * ):
-			 
-
-
-class LiuYuanEqualitySQPVerbose(IterationPrinter):
-	def __init__(s):
-		super().__init__(
-			it = '4d', 
-			obj = '20.10e', 
-			con = '8.2e', 
-			lagrange = '8.2e',	
-			norm_dx = '8.2e',
-			alpha = '8.2e',
-		)	
-	def __call__(s, state):
-		if state['it'] == 0:
-			s.print_header(
-				it = 'iter', 
-				obj = 'objective',
-				con = 'constraint',
-				lagrange = 'optimality',
-				norm_dx = '|| dx ||',
-				alpha = 'step',
-			)
-		s.print_iter(
-			it = state.get('it', None),
-			obj = state.get('f1', state.get('f0', None)),
-			con = state.get('v1', state.get('v0', None)),
-			lagrange = state.get('norm_lagrangian_grad', None),
-			norm_dx = state.get('norm_dx', None),
-			alpha = state.get('alpha', None),
-		)
-
-class LiuYuanEqualitySQP(EqualitySQP):
-	r"""
-	"""
-	def __init__(self, objective, constraint,
-		sigma = 0.01, xi1 = 1e-10, xi2 = 1e-4, kappa1 = 1e5,
-		kappa2 = 1e-6,**kwargs,):
-
-		super().__init__(objective, constraint, **kwargs)
-		self.sigma = sigma
-		self.xi1 = xi1	
-		self.xi2 = xi2	
-		self.kappa1 = kappa1
-		self.kappa2 = kappa2
-
-		self.verbose_callback = LiuYuanEqualitySQPVerbose()
-
+	
 	def solve_relaxation(self, h, A):
 		r""" Compute direction minimizing constraint violation
 
@@ -297,6 +268,74 @@ class LiuYuanEqualitySQP(EqualitySQP):
 
 		# Partition into state and Lagrange multipliers
 		return xx[:-n_con], xx[-n_con:] 
+			 
+
+
+class ReducedHessian(EqualitySQP):
+	r""" Solve the quadratic subproblem using the reduced Hessian approach 
+	
+	See: Nocedal and Wright
+	"""
+	def solve_qp(self, g, c, A, B, x0 = None, z0 = None):
+		# Basis for the nullspace of the linearized constraints
+		U = self.constraint.orthogonal_nullspace(A)
+
+		# TODO: Migrate to Scipy and compute one QR factorization of A? 
+		p_range = np.linalg.lstsq(A, c, rcond = None)[0]
+
+		# Reduced Hessian
+		H = U.T @ B @ U
+		p_null = U @ np.linalg.solve(U.T @ B @ U, -U.T @ B @ p_range - U.T @ g)
+		p = p_range + p_null
+
+		z = np.linalg.lstsq(A.T, -g - B @ p, rcond = None)[0]
+		return p, z
+
+class LiuYuanEqualitySQPVerbose(IterationPrinter):
+	def __init__(s):
+		super().__init__(
+			it = '4d', 
+			obj = '20.10e', 
+			con = '8.2e', 
+			lagrange = '8.2e',	
+			norm_dx = '8.2e',
+			alpha = '8.2e',
+		)	
+	def __call__(s, state):
+		if 'it' in state and state['it'] == 0:
+			s.print_header(
+				it = 'iter', 
+				obj = 'objective',
+				con = 'constraint',
+				lagrange = 'optimality',
+				norm_dx = '|| dx ||',
+				alpha = 'step',
+			)
+		s.print_iter(
+			it = state.get('it', None),
+			obj = state.get('f1', state.get('f0', None)),
+			con = state.get('v1', state.get('v0', None)),
+			lagrange = state.get('norm_lagrangian_grad', None),
+			norm_dx = state.get('norm_dx', None),
+			alpha = state.get('alpha', None),
+		)
+
+class LiuYuanEqualitySQP(EqualitySQP):
+	r"""
+	"""
+	def __init__(self, objective, constraint,
+		sigma = 0.01, xi1 = 1e-10, xi2 = 1e-4, kappa1 = 1e5,
+		kappa2 = 1e-6,**kwargs,):
+
+		super().__init__(objective, constraint, **kwargs)
+		self.sigma = sigma
+		self.xi1 = xi1	
+		self.xi2 = xi2	
+		self.kappa1 = kappa1
+		self.kappa2 = kappa2
+
+		self.verbose_callback = LiuYuanEqualitySQPVerbose()
+
 	
 	def init_solver(self):
 		self.r = 0.9
@@ -371,6 +410,7 @@ class LiuYuanEqualitySQP(EqualitySQP):
 				break
 
 			if norm_dx < self.tol_dx:
+				self.run_callbacks({**locals(), **kwargs} )
 				raise SmallStepTermination(norm_dx)
 			
 			alpha *= 0.5	
@@ -389,3 +429,4 @@ class LiuYuanEqualitySQP(EqualitySQP):
 		self.run_callbacks({**locals(), **kwargs} )
 
 		return x1, z1
+

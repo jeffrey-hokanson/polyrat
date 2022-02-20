@@ -25,5 +25,22 @@ def test_sqp():
 	print(solver.step(x0, z0))	
 	print(solver.solve(x0))	
 
+	class ReducedSQP(ReducedHessian, LiuYuanEqualitySQP):
+		pass
+
+	solver_reduced = ReducedSQP(objective, constraint)
+	solver_reduced.solve(x0)
+
+	# Check the reduced Hessian
+
+	for it in range(10):	
+		x1, z1 = solver.step(x0, z0)
+		x2, z2 = solver_reduced.step(x0, z0)
+		print(x1, x2)
+		print(z1, z2)
+		x0, z0 = x1, z1
+		assert np.allclose(x1, x2)
+		assert np.allclose(z1, z2)
+
 if __name__ == '__main__':
 	test_sqp()	
