@@ -374,7 +374,7 @@ class LiuYuanEqualitySQP(EqualitySQP):
 		B = self.objective.hess(x)
 		# Add contribution constraint Hessian if avalible
 		try: B += self.constraint.hess_vec(x, z)
-		except NotImplementedError: pass
+		except (NotImplementedError, AttributeError): pass
 	
 		# Solve relaxed QP subproblem 
 		p, z_new = self.solve_qp(g, A @ dp, A, B, x0 = dp, z0 = z)
@@ -399,7 +399,7 @@ class LiuYuanEqualitySQP(EqualitySQP):
 			x1 = self.translation(x, p, alpha)
 			f1 = self.objective.fun(x1)
 			v1 = np.linalg.norm(self.constraint.fun(x1))
-			
+
 			eq1 = (f1 - f0) <= min(self.sigma * alpha * gp, -self.xi1 * v1)
 			eq2 = (v1 <= max( (self.r +1)/2, 0.95) * self.vmax) or (self.vmax == 0)
 			eq3 = (v1 - v0) <= min(self.sigma * alpha * phi0, -self.xi2 * alpha**2 * norm_p**2)
