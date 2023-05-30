@@ -147,3 +147,12 @@ class StabilizedSKRationalApproximation(RationalApproximation, RationalRatio):
 			history = True, xtol = self.xtol, denom0 = denom0, weight = weight,
 			)
 		
+		from .basis import LegendrePolynomialBasis
+		from .polynomial import PolynomialApproximation
+		y = self.denominator
+		poly = PolynomialApproximation(self.denom_degree, Basis = LegendrePolynomialBasis)
+		poly.fit(X, y)
+		self.rat_poles = poly.roots().flatten()
+		
+
+		
